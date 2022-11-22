@@ -7,13 +7,43 @@ import time
 import matplotlib.pyplot as plt
 import tensorflow_decision_forests as tfdf
 
-# from sklearn.decomposition import PCA
+filedir = os.path.dirname(__file__)
 
-mnist = tf.keras.datasets.mnist
+TRAINDIR = filedir + "/../data/chest_xray/train"
+TESTDIR = filedir + "/../data/chest_xray/test"
+BATCHSIZE = 32
+IMG_HEIGHT = 200
+IMG_WIDTH = 200
 
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-x_train, x_test = x_train / 255.0, x_test / 255.0
-print(y_train[:10])
+train_ds = tf.keras.utils.image_dataset_from_directory(
+    TRAINDIR,
+    labels="inferred",
+    seed=1337,
+    image_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=5232,
+    color_mode="grayscale",
+)
+
+test_ds = tf.keras.utils.image_dataset_from_directory(
+    TESTDIR,
+    labels="inferred",
+    seed=1337,
+    image_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=624,
+    color_mode="grayscale",
+)
+
+for batch, label in train_ds:
+    x_train = batch
+    y_train = label
+
+    x_train_flat = tf.reshape(x_train, shape=[-1, 200 * 200])
+
+for batch, label in test_ds:
+    x_test = batch
+    y_test = label
+
+    x_test_flat = tf.reshape(x_test, shape=[-1, 200 * 200])
 
 
 # PCA implemented using tensors, to be able to run on gpu
@@ -57,7 +87,7 @@ class PCA:
         return tf.linalg.matmul(X, tf.transpose(self.W))
 
 
-n_components = 100
+n_components = 1000
 
 flatmodel = tf.keras.Sequential(
     [
@@ -99,9 +129,6 @@ convmodel.compile(
 
 randformodel = tfdf.keras.RandomForestModel()
 
-x_train_flat = tf.reshape(x_train, shape=[-1, 784])
-x_test_flat = tf.reshape(x_test, shape=[-1, 784])
-
 start = time.time()
 pca = PCA(n_components)
 pca.fit(x_train_flat)
@@ -114,24 +141,21 @@ flatmodel.fit(
 print(f"PCA model time taken: {time.time() - start}")
 
 
-x_train_4d = tf.reshape(x_train, shape=[-1, 28, 28, 1])
-x_test_4d = tf.reshape(x_test, shape=[-1, 28, 28, 1])
-
 start = time.time()
 convmodel.fit(
-    x_train_4d, y_train, validation_data=(x_test_4d, y_test), epochs=6, batch_size=64
+    x_train, y_train, validation_data=(x_test, y_test), epochs=6, batch_size=64
 )
 print(f"Conv model time taken: {time.time() - start}")
 
-start = time.time()
-pca = PCA(n_components)
-pca.fit(x_train_flat)
-x_train_pca = pca.transform(x_train_flat)
-x_test_pca = pca.transform(x_test_flat)
-
-randformodel.fit(x_train_pca, y_train)
-print(f"Random forest model time taken: {time.time() - start}")
-randformodel.evaluate(x_test_pca, y_test)
+# start = time.time()
+# pca = PCA(n_components)
+# pca.fit(x_train_flat)
+# x_train_pca = pca.transform(x_train_flat)
+# x_test_pca = pca.transform(x_test_flat)
+#
+# randformodel.fit(x_train_pca, y_train)
+# print(f"Random forest model time taken: {time.time() - start}")
+# randformodel.evaluate(x_test_pca, y_test)
 
 
 # ------- plotting pca ------------
