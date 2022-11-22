@@ -5,6 +5,6 @@ Assess dimention reduction methods combined with weak and strong learners for pr
 
 ## Instructions on retrieving data
 
-We use Chest X-Ray images of from Mendeley Data. These can be downloaded [here](https://data.mendeley.com/public-files/datasets/rscbjbr9sj/files/f12eaf6d-6023-432f-acc9-80c9d7393433/file_downloaded). Once the zip file has been downloaded, place it in the data directory and unzip it.
+We use Chest X-Ray images of from Mendeley Data. To download these images, and create the necessary file structure, you can run the shell script ```downloadData.sh```, if you are on linux or OSX. If you are on windows, you can download the data [here](https://data.mendeley.com/public-files/datasets/rscbjbr9sj/files/f12eaf6d-6023-432f-acc9-80c9d7393433/file_downloaded). After this, create a directory called ```data```, place ```ChestXRay2017.zip``` there and unzip it.
 
 
