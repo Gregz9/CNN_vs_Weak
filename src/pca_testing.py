@@ -50,11 +50,66 @@ class PCA:
             raise ValueError("Not fitted")
         return tf.linalg.matmul(X, self.W)
 
+    def inverse_transform(self, X):
+        if self.W is None:
+            raise ValueError("Not fitted")
+        return tf.linalg.matmul(X, tf.transpose(self.W))
 
-pca = PCA(64)
+
+n_components = 100
+pca = PCA(n_components)
 pca.fit(x_train)
-x_train = pca.transform(x_train)
-x_test = pca.transform(x_test)
+x_train_pca = pca.transform(x_train)
+x_test_pca = pca.transform(x_test)
+
+x_train_remade = pca.inverse_transform(x_train_pca)
+
+
+# ------- plotting pca ------------
+plt.subplot(421)
+plt.title("Actual instance, \n 784 features")
+plt.imshow(tf.reshape(x_train[0], (28, 28)))
+plt.subplot(422)
+plt.title(f"Constructed using only the \n {n_components} first principal components")
+plt.imshow(tf.reshape(x_train_remade[0], (28, 28)))
+
+plt.subplot(423)
+plt.imshow(tf.reshape(x_train[1], (28, 28)))
+plt.subplot(424)
+plt.imshow(tf.reshape(x_train_remade[1], (28, 28)))
+
+plt.subplot(425)
+plt.imshow(tf.reshape(x_train[2], (28, 28)))
+plt.subplot(426)
+plt.imshow(tf.reshape(x_train_remade[2], (28, 28)))
+
+plt.subplot(427)
+plt.imshow(tf.reshape(x_train[3], (28, 28)))
+plt.subplot(428)
+plt.imshow(tf.reshape(x_train_remade[3], (28, 28)))
+
+plt.show()
+
+model = tf.keras.Sequential(
+    [
+        # layers.Rescaling(1.0 / 255),
+        # tf.keras.layers.Flatten(input_shape=(28, 28)),
+        # PCALayer(64),
+        layers.Dense(n_components, activation="relu"),
+        layers.Dense(n_components, activation="relu"),
+        layers.Dense(n_components, activation="relu"),
+        layers.Dense(10),
+    ]
+)
+
+model.compile(
+    optimizer="adam",
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"],
+)
+
+model.fit(x_train_pca, y_train, validation_data=(x_test_pca, y_test), epochs=6)
+model.summary()
 
 
 # class PCALayer(layers.Layer):
@@ -85,24 +140,3 @@ x_test = pca.transform(x_test)
 #         output = tf.linalg.matmul(U, S)
 #
 #         return output
-
-model = tf.keras.Sequential(
-    [
-        # layers.Rescaling(1.0 / 255),
-        # tf.keras.layers.Flatten(input_shape=(28, 28)),
-        # PCALayer(64),
-        layers.Dense(64, activation="relu"),
-        layers.Dense(64, activation="relu"),
-        layers.Dense(64, activation="relu"),
-        layers.Dense(10),
-    ]
-)
-
-model.compile(
-    optimizer="adam",
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    metrics=["accuracy"],
-)
-
-model.fit(x_train, y_train, validation_data=(x_test, y_test), epochs=6)
-model.summary()
