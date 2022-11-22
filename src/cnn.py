@@ -1,10 +1,11 @@
 import tensorflow as tf
-import pathlib
+import os
 from tensorflow.keras import layers
 
+filedir = os.path.dirname(__file__)
 
-TRAINDIR = "../data/chest_xray/train"
-TESTDIR = "../data/chest_xray/test"
+TRAINDIR = filedir + "/../data/chest_xray/train"
+TESTDIR = filedir + "/../data/chest_xray/test"
 BATCHSIZE = 32
 IMG_HEIGHT = 200
 IMG_WIDTH = 200
