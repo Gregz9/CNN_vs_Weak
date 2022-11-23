@@ -93,7 +93,7 @@ class PCALayer(layers.Layer):
 x_list = []
 i = 0
 for batch, _ in train_ds:
-    x_list.append(tf.reshape(batch, shape=[-1, 200 * 200]))
+    x_list.append(tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)
     i += 1
     if i > 20:
         break
@@ -106,6 +106,7 @@ W = PCA_fit(X_train, n_components)
 
 flatmodel = tf.keras.Sequential(
     [
+        layers.Rescaling(1.0 / 255),
         layers.Flatten(),
         PCALayer(W),
         layers.Dense(n_components, activation="relu"),
