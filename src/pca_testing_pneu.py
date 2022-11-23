@@ -5,7 +5,7 @@ from tensorflow.keras import layers
 from PIL import Image
 import time
 import matplotlib.pyplot as plt
-import tensorflow_decision_forests as tfdf
+#import tensorflow_decision_forests as tfdf
 
 filedir = os.path.dirname(__file__)
 
@@ -127,7 +127,7 @@ convmodel.compile(
     metrics=["accuracy"],
 )
 
-randformodel = tfdf.keras.RandomForestModel()
+#randformodel = tfdf.keras.RandomForestModel()
 
 start = time.time()
 pca = PCA(n_components)
