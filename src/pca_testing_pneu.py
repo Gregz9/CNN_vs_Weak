@@ -122,17 +122,7 @@ flatmodel.compile(
     metrics=["accuracy"],
 )
 
-# convmodel.compile(
-#     optimizer="adam",
-#     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-#     metrics=["accuracy"],
-# )
-
-# randformodel = tfdf.keras.RandomForestModel()
-
-# start = time.time()
 flatmodel.fit(train_ds, validation_data=val_ds, epochs=6, batch_size=64)
-# print(f"PCA model time taken: {time.time() - start}")
 
 
 # ------- plotting pca ------------
