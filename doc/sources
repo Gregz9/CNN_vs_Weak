@@ -1,0 +1,3 @@
+cnn + rf hydrogen https://ieeexplore.ieee.org/abstract/document/9086043
+cnn + rf using cnn preds as features https://www.nature.com/articles/s41598-022-15374-5
+cnn + rf using untrained cnn with random forest https://www.hindawi.com/journals/wcmc/2022/2013181/
