@@ -5,7 +5,8 @@ from tensorflow.keras import layers
 from PIL import Image
 import time
 import matplotlib.pyplot as plt
-#import tensorflow_decision_forests as tfdf
+
+# import tensorflow_decision_forests as tfdf
 
 filedir = os.path.dirname(__file__)
 
@@ -93,19 +94,14 @@ x_list = []
 i = 0
 for batch, _ in train_ds:
     x_list.append(tf.reshape(batch, shape=[-1, 200 * 200]))
-    print(x_list[i].shape)
     i += 1
-    if i > 5:
+    if i > 20:
         break
 
 X_train = tf.concat(x_list, axis=0)
-print(X_train.shape)
-n_components = 20
+n_components = 1000
 
-# pca = PCA(n_components)
-# pca.fit(X_train)
 W = PCA_fit(X_train, n_components)
-print(W.shape)
 
 
 flatmodel = tf.keras.Sequential(
@@ -125,50 +121,42 @@ flatmodel.compile(
     metrics=["accuracy"],
 )
 
-convmodel.compile(
-    optimizer="adam",
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    metrics=["accuracy"],
-)
+# convmodel.compile(
+#     optimizer="adam",
+#     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+#     metrics=["accuracy"],
+# )
 
-#randformodel = tfdf.keras.RandomForestModel()
+# randformodel = tfdf.keras.RandomForestModel()
 
-start = time.time()
-pca = PCA(n_components)
-pca.fit(x_train_flat)
-x_train_pca = pca.transform(x_train_flat)
-x_test_pca = pca.transform(x_test_flat)
-
-flatmodel.fit(
-    x_train_pca, y_train, validation_data=(x_test_pca, y_test), epochs=6, batch_size=64
-)
+# start = time.time()
 flatmodel.fit(train_ds, validation_data=val_ds, epochs=6, batch_size=64)
-print(f"PCA model time taken: {time.time() - start}")
+# print(f"PCA model time taken: {time.time() - start}")
 
 
 # ------- plotting pca ------------
-x_train_remade = pca.inverse_transform(x_train_pca)
+# x_train_remade = pca.inverse_transform(x_train_pca)
 
-plt.subplot(421)
-plt.title("Actual instance, \n 784 features")
-plt.imshow(x_train[0])
-plt.subplot(422)
-plt.title(f"Constructed using only the \n {n_components} first principal components")
-plt.imshow(tf.reshape(x_train_remade[0], (28, 28)))
-
-plt.subplot(423)
-plt.imshow(x_train[1])
-plt.subplot(424)
-plt.imshow(tf.reshape(x_train_remade[1], (28, 28)))
-
-plt.subplot(425)
-plt.imshow(x_train[2])
-plt.subplot(426)
-plt.imshow(tf.reshape(x_train_remade[2], (28, 28)))
-
-plt.subplot(427)
-plt.imshow(x_train[3])
-plt.subplot(428)
-plt.imshow(tf.reshape(x_train_remade[3], (28, 28)))
-
-plt.show()
+# plt.subplot(421)
+# plt.title("Actual instance, \n 784 features")
+# plt.imshow(x_train[0])
+# plt.subplot(422)
+# plt.title(f"Constructed using only the \n {n_components} first principal components")
+# plt.imshow(tf.reshape(x_train_remade[0], (28, 28)))
+#
+# plt.subplot(423)
+# plt.imshow(x_train[1])
+# plt.subplot(424)
+# plt.imshow(tf.reshape(x_train_remade[1], (28, 28)))
+#
+# plt.subplot(425)
+# plt.imshow(x_train[2])
+# plt.subplot(426)
+# plt.imshow(tf.reshape(x_train_remade[2], (28, 28)))
+#
+# plt.subplot(427)
+# plt.imshow(x_train[3])
+# plt.subplot(428)
+# plt.imshow(tf.reshape(x_train_remade[3], (28, 28)))
+#
+# plt.show()
