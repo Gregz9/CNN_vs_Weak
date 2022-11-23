@@ -20,9 +20,10 @@ n_components = 100
 x_train_flat = tf.reshape(x_train, shape=[-1, 784])
 x_test_flat = tf.reshape(x_test, shape=[-1, 784])
 
+start = time.time()
 W = PCA_fit(x_train_flat, n_components)
 
-train_features = tf.matmul(x_train_flat[:10000], W)
+train_features = tf.matmul(x_train_flat, W)
 test_features = tf.matmul(x_test_flat, W)
 
 print(train_features.shape)
@@ -30,6 +31,7 @@ print(test_features.shape)
 
 forest = RandomForestClassifier(random_state=1337)
 
-forest.fit(train_features, y_train[:10000])
+forest.fit(train_features, y_train)
 
+print(f"Time taken for pca + rf: {time.time() - start}")
 print(forest.score(test_features, y_test))
