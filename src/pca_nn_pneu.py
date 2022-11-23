@@ -5,8 +5,7 @@ from tensorflow.keras import layers
 from PIL import Image
 import time
 import matplotlib.pyplot as plt
-
-# import tensorflow_decision_forests as tfdf
+from utils import *
 
 filedir = os.path.dirname(__file__)
 
@@ -35,61 +34,7 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 )
 
 
-def PCA_fit(X, n_components):
-    if X.shape[0] < n_components:
-        raise ValueError("n_components is higher than height of X")
-
-    means = tf.reduce_mean(X, axis=0)
-    stds = tf.math.reduce_std(X, axis=0)
-    stds = tf.where(tf.equal(stds, 0), tf.ones_like(stds), stds)
-    X = (X - means) / stds
-
-    _, _, W = tf.linalg.svd(X)
-
-    return W[:, :n_components]
-
-
-# PCA implemented using tensors, to be able to run on gpu
-class PCA:
-    def __init__(self, n_components):
-        self.n_components = n_components
-        self.W = None
-
-    def fit(self, X):
-        if X.shape[0] < self.n_components:
-            raise ValueError("n_components is higher than height of X")
-
-        means = tf.reduce_mean(X, axis=0)
-        stds = tf.math.reduce_std(X, axis=0)
-        stds = tf.where(tf.equal(stds, 0), tf.ones_like(stds), stds)
-        X = (X - means) / stds
-
-        _, _, W = tf.linalg.svd(X)
-
-        self.W = W[:, : self.n_components]
-
-    def transform(self, X):
-        if self.W is None:
-            raise ValueError("Not fitted")
-        return tf.linalg.matmul(X, self.W)
-
-    def inverse_transform(self, X):
-        if self.W is None:
-            raise ValueError("Not fitted")
-        return tf.linalg.matmul(X, tf.transpose(self.W))
-
-
-class PCALayer(layers.Layer):
-    def __init__(self, W):
-        super(PCALayer, self).__init__()
-        self.num_outputs = W.shape[1]
-        self.trainable = False
-        self.W = W
-
-    def call(self, inputs):
-        return tf.matmul(inputs, self.W)
-
-
+# grab a subset for PCA calculation
 x_list = []
 i = 0
 for batch, _ in train_ds:
@@ -98,13 +43,13 @@ for batch, _ in train_ds:
     if i > 20:
         break
 
-X_train = tf.concat(x_list, axis=0)
+X_subset = tf.concat(x_list, axis=0)
 n_components = 1000
 
-W = PCA_fit(X_train, n_components)
+W = PCA_fit(X_subset, n_components)
 
 
-flatmodel = tf.keras.Sequential(
+model = tf.keras.Sequential(
     [
         layers.Rescaling(1.0 / 255),
         layers.Flatten(),
@@ -112,17 +57,17 @@ flatmodel = tf.keras.Sequential(
         layers.Dense(n_components, activation="relu"),
         layers.Dense(n_components, activation="relu"),
         layers.Dense(n_components, activation="relu"),
-        layers.Dense(10),
+        layers.Dense(1),
     ]
 )
 
-flatmodel.compile(
+model.compile(
     optimizer="adam",
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 
-flatmodel.fit(train_ds, validation_data=val_ds, epochs=6, batch_size=64)
+model.fit(train_ds, validation_data=val_ds, epochs=6, batch_size=64)
 
 
 # ------- plotting pca ------------

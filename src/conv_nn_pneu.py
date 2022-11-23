@@ -6,7 +6,7 @@ filedir = os.path.dirname(__file__)
 
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
-BATCHSIZE = 32
+BATCHSIZE = 128
 IMG_HEIGHT = 200
 IMG_WIDTH = 200
 
@@ -56,6 +56,5 @@ model.compile(
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
-
 
 model.fit(train_ds, validation_data=test_ds, epochs=6)
