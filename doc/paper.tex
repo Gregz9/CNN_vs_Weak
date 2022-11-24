@@ -1,0 +1,70 @@
+\documentclass[onecolumn,10pt,cleanfoot]{asme2ej}
+
+\usepackage{graphicx} %% for loading jpg figures
+\usepackage{bm}
+\usepackage{nicefrac}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{parskip}
+\usepackage{listings}
+\usepackage{tablefootnote}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{xurl}
+
+\title{Dimention reduction for strong vs weak learners in pneumonia X-ray image prediction}
+
+%%% first author
+\author{Jonatan H. Hanssen
+    \affiliation{
+	Bachelor Student, Robotics and \\
+	Intelligent Systems\\ \\[-10pt]
+	Department of Informatics\\ \\[-10pt]
+	The faculty of Mathematics and \\
+	Natural Sciences\\ \\[-10pt]
+    Email: jonatahh@ifi.uio.no
+    }
+}
+
+\author{Eric E. Reber
+    \affiliation{
+	Bachelor Student, Robotics and \\
+	Intelligent Systems\\ \\[-10pt]
+	Department of Informatics\\ \\[-10pt]
+	The faculty of Mathematics and \\
+	Natural Sciences\\ \\[-10pt]
+    Email: ericer@ifi.uio.no
+    }
+}
+
+\author{Gregor Kajda
+    \affiliation{
+	Bachelor Student, Robotics and \\
+	Intelligent Systems\\ \\[-10pt]
+	Department of Informatics\\ \\[-10pt]
+	The faculty of Mathematics and \\
+	Natural Sciences\\ \\[-10pt]
+    Email: grzegork@ifi.uio.no
+    }
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+\section{Abstract}
+
+
+\section{Introduction}
+Images provide a challenge in machine learning as there are a large number of features present in the data which slow down our training. This is usually solved by first reducing the dimentionality of our data before feeding it into our learner of choice. In this paper, we will explore how convolution stacks up against principle component analysis as a method of dimention reduction for image data when coupled with a strong or a weak learner. We will investigate how these architectures perform for a simple image classification problem such as MNIST versus a more difficult classification problem in the form of pneumonia prediction from X-ray images. 
+
+More specifically, we will compare a traditional convolutional neural network with an architecture of a convolutional stage fed into a random forest, and against an architecture consisting of a PCA stage fed into either a neural network or a random forest with the aim of decreasing the computational cost or increasing the accuracy accross different datasets. Our investigation can be simplified into one question: what is the best way to tackle the challenges associated with image classification?
+
+First, we will give an explanation of the theory and method used in this paper, followed up with a detailed discussion of our results. Finally, we will arrive at a conclusion which summarizes our core results and lessons.
+
+\section{Method}
+
+\subsection{Theory}
