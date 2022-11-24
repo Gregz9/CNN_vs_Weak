@@ -13,7 +13,7 @@
 \usepackage{xcolor}
 \usepackage{xurl}
 
-\title{Dimention reduction for strong vs weak learners in pneumonia X-ray image prediction}
+
 
 %%% first author
 \author{Jonatan H. Hanssen
@@ -52,21 +52,112 @@
 
 \begin{document}
 
+% \title{Dimention reduction for strong vs weak learners in pneumonia X-ray image prediction}
+% \title{Liminations of computing compunations using tensorflow implemenation}
+\title{Hybrid models as an alternative to traditional Convolutional Neural Networks for image classification}
 
 \maketitle
 
 \section{Abstract}
 
+We found a dog driving a car down Hollywood Boulevard. It had sunglasses on, but didn't know where to go due to demensionality reduction. It was computing many computinations but due to severe liminations it had problems with binaly classifination and a large emesee.
 
 \section{Introduction}
-Images provide a challenge in machine learning as there are a large number of features present in the data which slow down our training. This is usually solved by first reducing the dimentionality of our data before feeding it into our learner of choice. In this paper, we will explore how convolution stacks up against principle component analysis as a method of dimention reduction for image data when coupled with a strong or a weak learner. We will investigate how these architectures perform for a simple image classification problem such as MNIST versus a more difficult classification problem in the form of pneumonia prediction from X-ray images. 
 
-More specifically, we will compare a traditional convolutional neural network with an architecture of a convolutional stage fed into a random forest, and against an architecture consisting of a PCA stage fed into either a neural network or a random forest with the aim of decreasing the computational cost or increasing the accuracy accross different datasets. Our investigation can be simplified into one question: what is the best way to tackle the challenges associated with image classification?
+The task of image recognition and classification is a great challenge in machine learning, as there are a large number of features present in the data which slow down our training. For a relatively small one-channel image of $200$ by $200$ pixels, the naive approach of using every pixel as a feature becomes unfeasable, as we now have $40000$ features. Clearly, some form of dimension reduction must be used to rectify this problem, and Convolutional Neural Networks are regarded as the gold standard for this. CNNs are able to reduce the dimensionality while extracting useful information in each layer, for example by finding edges in the first layer, combinations of edges that make a shape in the next layer, and combinations of shapes that resemble an object in the last layer. However, CNNs have many hyperparameters that need to be adjusted to achieve optimal performance, and a slow and computationally intensive training process. In this paper, we explore alternative models for image classification, using Principal Component Analysis and Random Forests in combination with parts of the traditional CNN model. We will investigate how these architectures perform for a simple image classification problem such as the MNIST dataset versus a more difficult classification problem in the form of pneumonia prediction from X-ray images. 
+
+More specifically, we will compare four different architectures. First we will use a traditional CNN, where a series convolutional layers is followed by a series fully connected layers. Then we will modify our CNN to create a CNN-RF model, where the features extracted by the convolutional layers are fed into a Random Forest instead of a series of fully connected layers. Finally, we will make use of Principal Component Analysis instead of convolution for dimensionality reduction, feeding the results of this stage into either a Neural Network or a Random Forest. In doing this, we hope to answer the following question: what is the best way to tackle the challenges associated with image classification?
+
+% More specifically, we will compare a traditional convolutional neural network with an architecture of a convolutional stage fed into a random forest, and against an architecture consisting of a PCA stage fed into either a neural network or a random forest with the aim of decreasing the computational cost or increasing the accuracy accross different datasets. Our investigation can be simplified into one question: what is the best way to tackle the challenges associated with image classification?
 
 First, we will give an explanation of the theory and method used in this paper, followed up with a detailed discussion of our results. Finally, we will arrive at a conclusion which summarizes our core results and lessons.
 
 \section{Method}
 
 \subsection{Theory}
+
+This sections covers the theoretic background which underlies the methods used in this paper.
+
+\subsubsection{Convolutional Neural Networks}
+
+A convolutional neural network.
+
+\subsubsection{Principal Component Analysis}
+
+Principal Component Analysis is a dimensionality reduction method which projects our dataset onto a lower dimension, while capturing as much of the variance of our data as possible. The central idea is to change the basis we use to represent our dataset, using vectors pointing in the principal directions of our dataset, instead of the unit vectors in feature space. The principal directions point in the direction of the variance of our dataset. By simply changing our basis to these vectors, called principal components, we have not achieved any dimensionality reduction, but by discarding directions of very little variance, we can reduce dimensionality without losing much variance (and thus information). By performing a Singular Value Decomposition we have everything we need to achieve this. The SVD is as follows:
+
+\begin{equation}
+X = UDV^T
+\end{equation}
+
+Here, the coloumns $U$ is known as the left singular vectors of $X$, $D$ is a diagonal matrix containing the singular values of $X$ (the square roots of the eigenvalues of $X^TX$) and the coloumns in $V$ are known as the right singular values. The right singular values are actually the principal components we need, ordered by the variance in that direction. Thus, we can project our dataset down to a subspace spanned by a subset of these vectors (for example the first 3 vectors) and reduce the dimensionality of our dataset while losing as little information as possible. Furthermore, the coloumn vectors of $V$ are ortogonal, and as such we can project our dataset down to this subspace with a single matrix multiplication:
+
+\begin{equation}
+\hat{X} = XV
+\end{equation}
+
+% Principal Component Analysis is a dimensionality reduction method performs a change of basis into a lower dimensional subspace of our feature space, while capturing as much of the variance of our dataset as possible. To do this, we can zero-center our datThis can be done by performing a Singular Value Decomposition of the design matrix, yielding the following decomposition.
+
+\subsubsection{Decision Trees}
+
+A decision tree is an intiutive way of performing both classification and regression tasks, by asking a series of yes or no questions about an instance in the dataset. These question will split the original dataset, the root node, into child nodes which contain subsets of the dataset, and these nodes will be split again, creating a tree structure which terminates in leaf nodes which imply a choice of class.
+
+In a binary classification problem, the algorithm for creating a decision tree is quite simple. First, consider each feature of the dataset, and attempt to split all instances into two child nodes based on a simple true/false statement about this feature. Having done this for every feature, calculate the degree of homogeneity\footnote{This can described by calculating the Gini-factor, or by calculating the entropy of the set} of the two child nodes created, when considering the actual class of the instances. The feature which created the most homegenous split, is the feature which has the largest effect on the final class, and as such should be the first feature we use to split the dataset. After this, we have two subsets, and we perform the same algorithm on these subsets again. This algorithm terminates when it is not possible to split the data further, because all nodes only contain instances belonging to the same class. In practice, it is advised to stop the algorithm earlier by introducing limits to the depth of the tree, or limits to how few instances can be in one node. Once the algorithm has terminated, we have a series of leaf nodes containing subsets of the data.
+
+Once a tree has been built, prediction is done by taking the instance and propagating it down the tree by answering the true/false statements that have been decided on in the creation of the tree. Once we have reached a leaf node, we predict that this instance is the class to which the majority of the instances in the leaf node belong to.
+
+Decision trees are intuitive and computationally cheap to create, not requiring any training due to the deterministic nature of the algorithm. Furthermore, they require little tuning and have few hyperparameters. However, they are prone to overfitting.
+
+\subsubsection{Random Forests}
+
+A Random Forest is a type of ensemble method used to improve the performance of a single decision tree, by using bagging. Instead of using a single tree, a random forest consists of many similar trees, and the final class is determined majority voting by all the trees. Like decision trees, they are relatively simple to understand.
+
+To create a random forest, we perform a bootstrap of the original dataset, creating many similar instances with small permutations introduced by resampling with replacement. We now create one decision tree per bootstrap, only using a random subset of the total amount of features every time we perform a split\footnote{The number of features used is often set to $\sqrt{p}$}. The result of this is that we create many slightly different trees, each slightly suboptimal in their splits. These trees give predictions which are worse than simply creating a single decision tree using all the features and all the data, but when basing our prediction of the majority vote of all the trees, we are able to make predictions which are more generalizable and less prone to overfitting.
+
+\subsubsection{Datasets}
+
+Below is a description of each of the datasets used in this report.
+
+\subsubsection{MNIST}
+
+The MNIST dataset is well known multiclass classification problem used to test machine learning algorithms. It consists of $70000$ black and white images of hand drawn digits, each $28$ by $28$ pixels. Each image is labeled with one of ten classes, corresponding to the digit it depicting. The dataset is divided into $60000$ training images and $10000$ validation images.This dataset is essentially uniformly distributed, with all classes containing around $9 - 11\%$ of the total dataset.
+
+\subsubsection{Guangzhou Chest X-Ray Pneumonia Dataset}
+
+The Guangzhou Chest X-Ray Pneumonia Dataset consists of $5856$ X-Ray images of children between the ages of one to five. The images were taken from the Woman and Children's Medical Center in Guangzhou, China. The dataset is divided into a training set of $5232$ images and $624$. The dataset is not evenly distributed, having $74.2\%$ instances of pneumonia in the training set and $62.5\%$ instances of pneumonia in the validation set.
+
+\subsection{Implementation}
+
+Our implementation can be found at \texttt{github.com/Gregz9/CNN\_vs\_weak.git}.
+
+All neural network stages were implemented using the Tensorflow library. PCA was implemented as a custom layer using the Keras API, or by mapping the operation to the whole dataset using Tensorflow's \texttt{dataset.map} functionality, depending on the model. Random Forests were implemented using the Tensorflow Decision Forests library.
+
+\section{Results}
+
+We found so much stuff man
+
+\subsection{Traditional Convolutional Neural Network}
+
+\subsection{Convolution followed by a Random Forest}
+
+\subsection{Principal Component Analysis followed by a Neural Network}
+
+\subsection{Principal Component Analysis followed by a Random Forest}
+
+\section{Conclusion}
+
+I have realized that I am cooler than Eric.
+
+\section*{Appendix}
+
+Here are some pictures of Eric Reber, formerly known as the criminal Ed "Gurgler" Bickley of Texas State Penistentiary.
+
+
+\begin{figure}[h]
+\centerline{\includegraphics[width=3.25in]{/home/jona/pictures/cat.jpg}}
+\caption{Eric Reber in his most devious form}
+\label{real1msetraintest}
+\end{figure}
+
 
 \end{document}
