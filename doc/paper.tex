@@ -80,7 +80,28 @@ This sections covers the theoretic background which underlies the methods used i
 
 \subsubsection{Convolutional Neural Networks}
 
-A convolutional neural network.
+Convolutional Neural Networks are neural networks which are specialized to work on images, or other types of data where the structure of the data carries meaning. A normal neural network treats each input indepentently, and inputs are flattened such that any spatial information is lost. CNNs, on the other hand, explicitly take the spatial dimensions into account, by using convolutional kernels and pooling layers as part of their architecture.
+
+The eponymous operation of convolution is a method which is used much in image processing. It is performed by using a convolutional kernel, which is applied to each pixel of the image. The kernel is a matrix of values, and the output of a particular pixel is the sum of all the pixels in its neighbourhood multiplied by the overlapping value in the kernel. As such, the value in any one position is dependent on the kernel, but also on the pixels around this position. This allows us to extract valuable information about images, such as edges or patterns. A basic kernel could be the Laplacian kernel (Eq.~\ref{laplace}), which will output a high value when the pixel in the middle of the kernel has a value which differs greatly from the pixels in a 3 by 3 neighbourhood around it.
+
+\begin{equation}
+\label{laplace}
+laplace : 
+\begin{bmatrix}
+-1 & -1 & -1 \\
+-1 & 8 & -1 \\
+-1 & -1 & -1
+\end{bmatrix}
+\end{equation}
+
+The mathematical equation for the convolution of a kernel $w$ on an image $f(x,y)$ (represented as a discrete function in two variables) is as follows:
+
+\begin{equation}
+w \star f(x,y) = \sum^a_{s=-a} \sum^b_{t=-b}f(x+s, y+t)\footnote{In reality, we should have $x-s$ and $y-t$, as correlation involves rotating the kernel by 180 degrees. However, the term convolution is often used for both the mathematical operations of correlation and convolution\cite[160]{dip}}
+\end{equation}
+
+In a convolutional neural network, the values of each kernel is initialized randomly, and training involves tuning these values. When performing convolution at the edges of an image, some values will be undefined.
+
 
 \subsubsection{Principal Component Analysis}
 
@@ -147,6 +168,9 @@ We found so much stuff man
 \section{Conclusion}
 
 I have realized that I am cooler than Eric.
+
+\bibliographystyle{apalike}
+\bibliography{bibliography}
 
 \section*{Appendix}
 
