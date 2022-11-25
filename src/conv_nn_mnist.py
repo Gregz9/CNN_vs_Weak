@@ -16,6 +16,15 @@ mnist = tf.keras.datasets.mnist
 x_train = tf.reshape(x_train, shape=[-1, 28, 28, 1])
 x_test = tf.reshape(x_test, shape=[-1, 28, 28, 1])
 
+print(x_train.shape)
+
+train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+val_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+print(train_ds)
+
+train_ds = train_ds.batch(batch_size)
+val_ds = val_ds.batch(batch_size)
+
 model = tf.keras.Sequential(
     [
         tf.keras.layers.Rescaling(1.0 / 255),
@@ -38,11 +47,9 @@ model.compile(
 )
 
 model.fit(
-    x_train,
-    y_train,
-    validation_data=(x_test, y_test),
+    train_ds,
+    validation_data=val_ds,
     epochs=epochs,
-    batch_size=batch_size,
 )
 
 # ------- plotting pca ------------
