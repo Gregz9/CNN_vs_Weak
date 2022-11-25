@@ -14,8 +14,16 @@ mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
+print(x_train.shape)
+
 x_train = tf.reshape(x_train, shape=[-1, 28, 28, 1])
 x_test = tf.reshape(x_test, shape=[-1, 28, 28, 1])
+
+print(x_train.shape)
+
+train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+val_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+print(train_ds)
 
 model = tf.keras.Sequential(
     [
@@ -39,25 +47,26 @@ model.compile(
     metrics=["accuracy"],
 )
 
-feature_extractor = tf.keras.Model(
-    inputs=model.inputs,
-    outputs=model.layers[-2].output,
-)
 
 model.fit(
-    x_train,
-    y_train,
-    validation_data=(x_test, y_test),
+    train_ds,
+    validation_data=val_ds,
     epochs=epochs,
     batch_size=batch_size,
 )
 
-train_features = feature_extractor(x_train[:10000])
-test_features = feature_extractor(x_test)
+feature_extractor = tf.keras.Model(
+    inputs=model.inputs,
+    outputs=model.layers[-3].output,
+)
+
+features_train = train_ds.map(lambda batch, label: (feature_extractor(batch), label))
+features_test = val_ds.map(lambda batch, label: (feature_extractor(batch), label))
 
 forest = RandomForestClassifier(random_state=1337)
 forest.compile(metrics=["accuracy"])
 
-forest.fit(train_features, y_train[:10000])
+forest.fit(features_train, y_train[:10000])
 
+print(forest.score(test_features, y_test))
 print(forest.score(test_features, y_test))
