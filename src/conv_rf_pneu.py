@@ -92,5 +92,5 @@ forest.fit(x=features_train)
 
 forest.compile(metrics=["accuracy"])
 
-# print(forest.evaluate(features_train, return_dict=True))
+print(forest.evaluate(features_train, return_dict=True))
 print(forest.evaluate(features_test, return_dict=True))
