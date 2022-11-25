@@ -28,8 +28,6 @@ test_ds = tf.keras.utils.image_dataset_from_directory(
     color_mode="grayscale",
 )
 
-normalization_layer = layers.Rescaling(1.0 / 255)
-
 AUTOTUNE = tf.data.AUTOTUNE
 
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)

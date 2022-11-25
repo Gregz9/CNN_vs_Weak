@@ -56,6 +56,7 @@ train_features = feature_extractor(x_train[:10000])
 test_features = feature_extractor(x_test)
 
 forest = RandomForestClassifier(random_state=1337)
+forest.compile(metrics=["accuracy"])
 
 forest.fit(train_features, y_train[:10000])
 
