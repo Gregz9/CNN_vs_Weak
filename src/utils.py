@@ -1,5 +1,37 @@
 import tensorflow as tf
 from tensorflow.keras import layers
+import numpy as np
+
+
+def PCA_stoch(X, n_components):
+    print("eric")
+
+
+def PCA_stoch(X, n_components, iterations=10, eta=1e-5, convergence=1e-5, epochs=10):
+    n, d = X.shape
+    W_t = np.random.rand(d, n_components) - 0.5
+    print(W_t.shape)
+    W_t = W_t / np.linalg.norm(W_t, axis=0)
+    X = X - np.mean(X, axis=0)
+
+    for e in range(epochs):
+
+        W = W_t
+
+        for t in range(iterations):
+            i = np.random.randint(n)
+            print(f"{W.shape=}")
+            print(f"{X[i].shape=}")
+            print(f"{X[i].T.dot(W).shape=}")
+            W_mark = W + eta * (X[i] * (X[i].T.dot(W) - X[i].T.dot(W_t)))
+            W_mark = W_mark / np.linalg.norm(W_mark, axis=0)
+            W = _W
+
+        d = np.linalg.norm(W_t - W)
+        W_t = W
+
+        if d < rate:
+            return
 
 
 def PCA_fit(X, n_components):
