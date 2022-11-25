@@ -27,16 +27,16 @@ val_ds = val_ds.batch(batch_size)
 
 model = tf.keras.Sequential(
     [
-        tf.keras.layers.Rescaling(1.0 / 255),
-        tf.keras.layers.Conv2D(32, 3, activation="relu"),
-        tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Conv2D(32, 3, activation="relu"),
-        tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Conv2D(32, 3, activation="relu"),
-        tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation="relu"),
-        tf.keras.layers.Dense(10),
+        layers.Rescaling(1.0 / 255),
+        layers.Conv2D(32, 3, activation="relu"),
+        layers.MaxPooling2D(),
+        layers.Conv2D(32, 3, activation="relu"),
+        layers.MaxPooling2D(),
+        layers.Conv2D(32, 3, activation="relu"),
+        layers.MaxPooling2D(),
+        layers.Flatten(),
+        layers.Dense(128, activation="relu"),
+        layers.Dense(10),
     ]
 )
 
