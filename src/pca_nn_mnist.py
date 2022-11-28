@@ -6,6 +6,7 @@ from PIL import Image
 import time
 import matplotlib.pyplot as plt
 from utils import *
+from sklearn.decomposition import PCA
 
 mnist = tf.keras.datasets.mnist
 
@@ -17,13 +18,18 @@ n_components = 100
 x_train_flat = tf.reshape(x_train, shape=[-1, 784])
 x_test_flat = tf.reshape(x_test, shape=[-1, 784])
 
-W = PCA_fit(x_train_flat, n_components)
+pca = PCA(n_components=n_components, svd_solver="randomized")
 
-# train_ds.map(lambda batch, label: (tf.matmul(batch, W), label))
+print("Fitting PCA")
+start = time.time()
+pca.fit(x_train_flat)
+
+pca.transform(x_train_flat)
+pca.transform(x_test_flat)
+
 
 model = tf.keras.Sequential(
     [
-        PCALayer(W),
         layers.Dense(n_components, activation="relu"),
         layers.Dense(n_components, activation="relu"),
         layers.Dense(n_components, activation="relu"),
