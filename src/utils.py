@@ -8,30 +8,31 @@ def PCA_stoch(X, n_components):
 
 
 def PCA_stoch(X, n_components, iterations=10, eta=1e-5, convergence=1e-5, epochs=10):
-    n, d = X.shape
-    W_t = np.random.rand(d, n_components) - 0.5
-    print(W_t.shape)
-    W_t = W_t / np.linalg.norm(W_t, axis=0)
-    X = X - np.mean(X, axis=0)
+    print(f"{X.shape=}")
+    m, n = X.shape
+    W_prev_epoch = np.eye(m, n_components)
 
     for e in range(epochs):
+        print(e)
 
-        W = W_t
+        W_prev_iter = W_prev_epoch
+        u_mark = np.zeros((m, n_components))
+        for i in range(n):
+            u_mark += np.outer(X[:, i], (X[:, i].T @ W_prev_epoch)) / n
 
         for t in range(iterations):
+            print(t)
             i = np.random.randint(n)
-            print(f"{W.shape=}")
-            print(f"{X[i].shape=}")
-            print(f"{X[i].T.dot(W).shape=}")
-            W_mark = W + eta * (X[i] * (X[i].T.dot(W) - X[i].T.dot(W_t)))
-            W_mark = W_mark / np.linalg.norm(W_mark, axis=0)
-            W = _W
 
-        d = np.linalg.norm(W_t - W)
-        W_t = W
+            X_i = X[:, i].reshape(X[:, i].shape[0], 1)
+            W_mark = W_prev_iter + eta * (
+                X_i * (X_i.T @ W_prev_iter - X_i.T @ W_prev_epoch) + u_mark
+            )
+            W_prev_iter, _ = np.linalg.qr(W_mark)
 
-        if d < rate:
-            return
+        W_prev_epoch = W_prev_iter
+
+    return W_prev_epoch
 
 
 def PCA_fit(X, n_components):
