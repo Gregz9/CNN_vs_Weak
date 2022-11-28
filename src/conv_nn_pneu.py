@@ -1,8 +1,11 @@
 import tensorflow as tf
 import os
 from tensorflow.keras import layers
+from tensorflow.keras import regularizers
 
 filedir = os.path.dirname(__file__)
+
+tf.keras.utils.set_random_seed(1336)
 
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
@@ -33,18 +36,20 @@ AUTOTUNE = tf.data.AUTOTUNE
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
+kernel = tf.keras.regularizers.L2(l2=0.001)
+bias = tf.keras.regularizers.L2(l2=0.001)
 
 model = tf.keras.Sequential(
     [
         tf.keras.layers.Rescaling(1.0 / 255),
-        tf.keras.layers.Conv2D(32, 3, activation="relu"),
+        tf.keras.layers.Conv2D(32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
         tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Conv2D(32, 3, activation="relu"),
+        tf.keras.layers.Conv2D(32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
         tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Conv2D(32, 3, activation="relu"),
+        tf.keras.layers.Conv2D(32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
         tf.keras.layers.MaxPooling2D(),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation="relu"),
+        tf.keras.layers.Dense(128, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
         tf.keras.layers.Dense(1),
     ]
 )

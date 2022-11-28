@@ -2,12 +2,16 @@ import tensorflow as tf
 import os
 import numpy as np
 from tensorflow.keras import layers
+from tensorflow.keras import regularizers
 from PIL import Image
 import time
 import matplotlib.pyplot as plt
 from utils import *
+from sklearn.decomposition import PCA
 
 filedir = os.path.dirname(__file__)
+
+tf.keras.utils.set_random_seed(1336)
 
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
@@ -37,29 +41,52 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 # grab a subset for PCA calculation
 x_list = []
 i = 0
-for batch, _ in train_ds:
-    x_list.append(tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)
-    i += 1
-    if i > 20:
-        break
+X_train = None
+X_test = None
+y_train = None
+y_test = None
 
-X_subset = tf.concat(x_list, axis=0)
-n_components = 1000
-
-W = PCA_fit(X_subset, n_components)
-
-
+n_components = 5000
+kernel = tf.keras.regularizers.L2(l2=0.001)
+bias = tf.keras.regularizers.L2(l2=0.001)
 model = tf.keras.Sequential(
     [
-        layers.Rescaling(1.0 / 255),
-        layers.Flatten(),
-        PCALayer(W),
-        layers.Dense(n_components, activation="relu"),
-        layers.Dense(n_components, activation="relu"),
-        layers.Dense(n_components, activation="relu"),
+        layers.Dense(n_components, kernel_regularizer=kernel, bias_regularizer=bias, activation="relu"),
+        layers.Dense(n_components, kernel_regularizer=kernel, bias_regularizer=bias, activation="relu"),
+        layers.Dense(n_components, kernel_regularizer=kernel, bias_regularizer=bias, activation="relu"),
         layers.Dense(1),
     ]
 )
+
+for batch, labels in train_ds:
+    if X_train is None:
+        X_train = tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0
+        y_train = labels
+
+    else:
+        X_train = tf.concat([X_train, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0)
+        y_train = tf.concat([y_train, labels], axis=0)
+
+for batch, labels in val_ds:
+    if X_test is None:
+        X_test = tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0
+        y_test = labels
+
+    else:
+        X_test = tf.concat([X_test, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0)
+        y_test = tf.concat([y_test, labels], axis=0)
+
+
+pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
+# pca = PCA(n_components=n_components, svd_solver="full", random_state=1336)
+
+print("Fitting PCA")
+start = time.time()
+pca.fit(X_train)
+
+pca.transform(X_train)
+pca.transform(X_test)
+
 
 model.compile(
     optimizer="adam",
@@ -67,8 +94,14 @@ model.compile(
     metrics=["accuracy"],
 )
 
-model.fit(train_ds, validation_data=val_ds, epochs=6, batch_size=64)
-
+model.fit(
+    X_train,
+    y_train,
+    validation_data=(X_test, y_test),
+    epochs=6,
+    batch_size=64,
+)
+print(f"Time taken: {time.time() - start}")
 
 # ------- plotting pca ------------
 # x_train_remade = pca.inverse_transform(x_train_pca)
