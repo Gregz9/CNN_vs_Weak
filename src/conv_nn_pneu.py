@@ -13,6 +13,7 @@ BATCHSIZE = 128
 IMG_HEIGHT = 200
 IMG_WIDTH = 200
 
+
 train_ds = tf.keras.utils.image_dataset_from_directory(
     TRAINDIR,
     labels="inferred",
@@ -31,6 +32,14 @@ test_ds = tf.keras.utils.image_dataset_from_directory(
     color_mode="grayscale",
 )
 
+COUNT_NORMAL = 1071
+COUNT_PNEUMONIA = 3114
+
+weight_for_0 = (1 / COUNT_NORMAL) * (COUNT_NORMAL + COUNT_PNEUMONIA) / 2.0
+weight_for_1 = (1 / COUNT_PNEUMONIA) * (COUNT_NORMAL + COUNT_PNEUMONIA) / 2.0
+
+class_weight = {0: weight_for_0, 1: weight_for_1}
+
 AUTOTUNE = tf.data.AUTOTUNE
 
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
@@ -42,14 +51,22 @@ bias = tf.keras.regularizers.L2(l2=0.001)
 model = tf.keras.Sequential(
     [
         tf.keras.layers.Rescaling(1.0 / 255),
-        tf.keras.layers.Conv2D(32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
+        tf.keras.layers.Conv2D(
+            32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
+        ),
         tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Conv2D(32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
+        tf.keras.layers.Conv2D(
+            32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
+        ),
         tf.keras.layers.MaxPooling2D(),
-        tf.keras.layers.Conv2D(32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
+        tf.keras.layers.Conv2D(
+            32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
+        ),
         tf.keras.layers.MaxPooling2D(),
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(128, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
+        tf.keras.layers.Dense(
+            128, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
+        ),
         tf.keras.layers.Dense(1),
     ]
 )
@@ -60,4 +77,10 @@ model.compile(
     metrics=["accuracy"],
 )
 
-model.fit(train_ds, validation_data=test_ds, epochs=6)
+model.fit(
+    train_ds,
+    batch_size=BATCHSIZE,
+    validation_data=test_ds,
+    epochs=100,
+    class_weight=class_weight,
+)
