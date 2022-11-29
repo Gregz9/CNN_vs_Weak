@@ -9,6 +9,7 @@ from utils import *
 from sklearn.model_selection import KFold
 import keras_tuner as kt
 
+tf.keras.utils.set_random_seed(1336)
 batch_size = 128
 epochs = 6
 mnist = tf.keras.datasets.mnist
@@ -69,6 +70,8 @@ tuner.search(x_train, y_train, epochs=10, validation_split=0.2)
 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 width = best_hps.get("width")
 learning_rate = best_hps.get("learning_rate")
+print(width)
+print(learning_rate)
 
 kf = KFold(n_splits=5)  # random_state=1336)
 
@@ -84,11 +87,11 @@ for train_index, test_index in kf.split(x_train, y_train):
     model = tf.keras.Sequential(
         [
             layers.Rescaling(1.0 / 255),
-            layers.Conv2D(32, width, activation="relu"),
+            layers.Conv2D(32, width, activation="relu", padding='same'),
             layers.MaxPooling2D(),
-            layers.Conv2D(32, width, activation="relu"),
+            layers.Conv2D(32, width, activation="relu", padding='same'),
             layers.MaxPooling2D(),
-            layers.Conv2D(32, width, activation="relu"),
+            layers.Conv2D(32, width, activation="relu", padding='same'),
             layers.MaxPooling2D(),
             layers.Flatten(),
             layers.Dense(128, activation="relu"),
