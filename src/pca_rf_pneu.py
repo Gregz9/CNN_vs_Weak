@@ -41,7 +41,7 @@ i = 0
 for batch, _ in train_ds:
     x_list.append(tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)
     i += 1
-    if i > 40:
+    if i > 20:
         break
 
 X_subset = tf.concat(x_list, axis=0)
