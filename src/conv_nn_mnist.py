@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from utils import *
 from sklearn.model_selection import KFold
 import keras_tuner as kt
-
+import seaborn as sns
 tf.keras.utils.set_random_seed(1336)
 batch_size = 128
 epochs = 6
@@ -35,10 +35,10 @@ def model_builder(hp):
     model = tf.keras.Sequential(
         [
             layers.Rescaling(1.0 / 255),
-            layers.Conv2D(32, hp_width, activation="relu", padding="same"),
-            layers.MaxPooling2D(),
-            layers.Conv2D(32, hp_width, activation="relu", padding="same"),
-            layers.MaxPooling2D(),
+            # layers.Conv2D(32, hp_width, activation="relu", padding="same"),
+            # layers.MaxPooling2D(),
+            # layers.Conv2D(32, hp_width, activation="relu", padding="same"),
+            # layers.MaxPooling2D(),
             layers.Conv2D(32, hp_width, activation="relu", padding="same"),
             layers.MaxPooling2D(),
             layers.Flatten(),
@@ -73,52 +73,46 @@ learning_rate = best_hps.get("learning_rate")
 print(width)
 print(learning_rate)
 
-kf = KFold(n_splits=5)  # random_state=1336)
 
+model = tf.keras.Sequential(
+    [
+        layers.Rescaling(1.0 / 255),
+        # layers.Conv2D(32, width, activation="relu", padding='same'),
+        # layers.MaxPooling2D(),
+        # layers.Conv2D(32, width, activation="relu", padding='same'),
+        # layers.MaxPooling2D(),
+        layers.Conv2D(32, width, activation="relu", padding='same'),
+        layers.MaxPooling2D(),
+        layers.Flatten(),
+        layers.Dense(128, activation="relu"),
+        layers.Dense(10),
+    ]
+)
 
-avg_accuracy = 0
-for train_index, test_index in kf.split(x_train, y_train):
-    train_start = train_index[0]
-    train_stop = train_index[-1]
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"],
+)
 
-    test_start = test_index[0]
-    test_stop = test_index[-1]
+model.fit(
+    x_train,
+    y_train,
+    validation_data=(x_test, y_test),
+    batch_size=batch_size,
+    epochs=epochs,
+)
 
-    model = tf.keras.Sequential(
-        [
-            layers.Rescaling(1.0 / 255),
-            layers.Conv2D(32, width, activation="relu", padding='same'),
-            layers.MaxPooling2D(),
-            layers.Conv2D(32, width, activation="relu", padding='same'),
-            layers.MaxPooling2D(),
-            layers.Conv2D(32, width, activation="relu", padding='same'),
-            layers.MaxPooling2D(),
-            layers.Flatten(),
-            layers.Dense(128, activation="relu"),
-            layers.Dense(10),
-        ]
-    )
+results = model.evaluate(
+    x_test,
+    y_test,
+    return_dict=True,
+)
 
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=["accuracy"],
-    )
+predictions = tf.math.argmax(model.predict(x_test), axis=1)
+conf = conf_mat(predictions, y_test, num_cls=10)
+conf = perc(conf)
 
-    model.fit(
-        x_train[train_start:train_stop],
-        y_train[train_start:train_stop],
-        validation_data=(x_train[test_start:test_stop], y_train[test_start:test_stop]),
-        epochs=epochs,
-    )
+plot_confusion(conf, title="Confusion matrix - CNN - MNIST")
+print(results)
 
-    results = model.evaluate(
-        x_train[test_start:test_stop],
-        y_train[test_start:test_stop],
-        return_dict=True,
-    )
-
-    print(results)
-    avg_accuracy += results["accuracy"] / 5
-
-print(avg_accuracy)

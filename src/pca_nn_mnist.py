@@ -70,56 +70,50 @@ print(units)
 print(learning_rate)
 folds = 5
 
-kf = KFold(n_splits=folds)  # random_state=1336)
 
-avg_accuracy = 0
-for train_index, test_index in kf.split(x_train_flat, y_train):
-    train_start = train_index[0]
-    train_stop = train_index[-1]
+pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
+pca.fit(x_train_flat)
 
-    test_start = test_index[0]
-    test_stop = test_index[-1]
+x_train_pca = pca.transform(x_train_flat)
+x_test_pca = pca.transform(x_test_flat)
 
-    pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
+y_train_cv = y_train
 
-    pca.fit(x_train_flat[train_start:train_stop])
 
-    x_train_pca = pca.transform(x_train_flat[train_start:train_stop])
-    x_holdout_pca = pca.transform(x_train_flat[test_start:test_stop])
+model = tf.keras.Sequential(
+    [
+        layers.Dense(units, activation="relu"),
+        layers.Dense(units, activation="relu"),
+        layers.Dense(units, activation="relu"),
+        layers.Dense(10),
+    ]
+)
 
-    y_train_cv = y_train[train_start:train_stop]
-    y_holdout = y_train[test_start:test_stop]
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"],
+)
 
-    model = tf.keras.Sequential(
-        [
-            layers.Dense(units, activation="relu"),
-            layers.Dense(units, activation="relu"),
-            layers.Dense(units, activation="relu"),
-            layers.Dense(10),
-        ]
-    )
+model.fit(
+    x_train_pca,
+    y_train,
+    validation_data=(x_test_pca, y_test),
+    epochs=6,
+    batch_size=64,
+)
 
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=["accuracy"],
-    )
+results = model.evaluate(
+    x_test_pca,
+    y_test,
+    return_dict=True,
+)
 
-    model.fit(
-        x_train_pca,
-        y_train_cv,
-        validation_data=(x_holdout_pca, y_holdout),
-        epochs=6,
-        batch_size=64,
-    )
+predictions = tf.math.argmax(model.predict(x_test_pca), axis=1)
+conf = conf_mat(predictions, y_test, num_cls=10)
+conf = perc(conf)
+plot_confusion(conf, title="Confusion matrix - PCA_NN - MNIST")
 
-    results = model.evaluate(
-        x_holdout_pca,
-        y_holdout,
-        return_dict=True,
-    )
+print(results)
 
-    print(results)
-    avg_accuracy += results["accuracy"] / folds
-
-print(avg_accuracy)
+print(results['accuracy'])

@@ -1,7 +1,9 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 import numpy as np
-
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm 
 
 def PCA_stoch(X, n_components):
     print("eric")
@@ -9,12 +11,14 @@ def PCA_stoch(X, n_components):
 def plot_confusion(confusion_matrix: np.ndarray, title=None):
     fontsize = 40
 
-    sns.set(font_scale=3)
+    sns.set(font_scale=1.5)
     sns.heatmap(
         confusion_matrix,
         annot=True,
         fmt=".2%",
         cmap="Blues",
+        norm=LogNorm(),
+
     )
     if title:
         plt.title(title)
@@ -81,7 +85,7 @@ class PCALayer(layers.Layer):
         return tf.matmul(inputs, self.W)
 
 
-def conf_mat(preds, labl, numn_cls): 
+def conf_mat(preds, labl, num_cls): 
     return tf.math.confusion_matrix(labels=labl, predictions=preds, num_classes=num_cls)
 
 def perc(matrix): 
