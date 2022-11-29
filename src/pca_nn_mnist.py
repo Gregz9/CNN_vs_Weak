@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from utils import *
 from sklearn.decomposition import PCA
 import keras_tuner as kt
+from sklearn.model_selection import KFold
 
 tf.keras.utils.set_random_seed(1336)
 mnist = tf.keras.datasets.mnist
@@ -15,7 +16,7 @@ mnist = tf.keras.datasets.mnist
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 x_train, x_test = x_train / 255.0, x_test / 255.0
 
-n_components = 20
+n_components = 80
 
 x_train_flat = tf.reshape(x_train, shape=[-1, 784])
 x_test_flat = tf.reshape(x_test, shape=[-1, 784])
@@ -29,7 +30,6 @@ pca.fit(x_train_flat)
 
 x_train_pca = pca.transform(x_train_flat)
 x_train_pca = pca.transform(x_test_flat)
-
 
 def model_builder(hp):
     hp_units = hp.Int("units", min_value=32, max_value=512, step=32)
