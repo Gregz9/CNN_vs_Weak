@@ -121,6 +121,8 @@ Here, the coloumns $U$ is known as the left singular vectors of $X$, $D$ is a di
 \hat{X} = XV
 \end{equation}
 
+For very large design matrices, the computational complexity of calculating the singular value decomposition can be significant. However, there exists stochastic methods to achieve good approximations, like Randomized PCA \cite[227]{halko}.
+
 % Principal Component Analysis is a dimensionality reduction method performs a change of basis into a lower dimensional subspace of our feature space, while capturing as much of the variance of our dataset as possible. To do this, we can zero-center our datThis can be done by performing a Singular Value Decomposition of the design matrix, yielding the following decomposition.
 
 \subsubsection{Decision Trees}
