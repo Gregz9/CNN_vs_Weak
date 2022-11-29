@@ -6,6 +6,25 @@ import numpy as np
 def PCA_stoch(X, n_components):
     print("eric")
 
+def plot_confusion(confusion_matrix: np.ndarray, title=None):
+    fontsize = 40
+
+    sns.set(font_scale=3)
+    sns.heatmap(
+        confusion_matrix,
+        annot=True,
+        fmt=".2%",
+        cmap="Blues",
+    )
+    if title:
+        plt.title(title)
+    else:
+        plt.title("Confusion matrix")
+
+    plt.xlabel("Predicted class")
+    plt.ylabel("True class")
+    plt.show()
+
 
 def PCA_stoch(X, n_components, iterations=10, eta=1e-5, convergence=1e-5, epochs=10):
     print(f"{X.shape=}")
