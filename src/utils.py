@@ -81,6 +81,17 @@ class PCALayer(layers.Layer):
         return tf.matmul(inputs, self.W)
 
 
+def conf_mat(preds, labl, numn_cls): 
+    return tf.math.confusion_matrix(labels=labl, predictions=preds, num_classes=num_cls)
+
+def perc(matrix): 
+    conf = np.zeros(matrix.shape) 
+
+    for i in range(matrix.shape[0]): 
+        for j in range(matrix.shape[1]): 
+            conf[i][j] = matrix[i][j] / tf.reduce_sum(matrix[i], 0).numpy()
+    return conf
+
 # PCA implemented using tensors, to be able to run on gpu
 
 # class PCA:
