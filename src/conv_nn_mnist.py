@@ -29,16 +29,16 @@ x_test = tf.reshape(x_test, shape=[-1, 28, 28, 1])
 
 
 def model_builder(hp):
-    hp_size = hp.Int("units", min_value=3, max_value=7, step=2)
+    hp_width = hp.Choice("width", values=[3, 5, 7])
 
     model = tf.keras.Sequential(
         [
             layers.Rescaling(1.0 / 255),
-            layers.Conv2D(32, hp_size, activation="relu", padding="same"),
+            layers.Conv2D(32, hp_width, activation="relu", padding="same"),
             layers.MaxPooling2D(),
-            layers.Conv2D(32, hp_size, activation="relu", padding="same"),
+            layers.Conv2D(32, hp_width, activation="relu", padding="same"),
             layers.MaxPooling2D(),
-            layers.Conv2D(32, hp_size, activation="relu", padding="same"),
+            layers.Conv2D(32, hp_width, activation="relu", padding="same"),
             layers.MaxPooling2D(),
             layers.Flatten(),
             layers.Dense(128, activation="relu"),
@@ -65,12 +65,10 @@ tuner = kt.Hyperband(
     directory="conv_nn_mnist-params",
 )
 
-print("searching")
 tuner.search(x_train, y_train, epochs=10, validation_split=0.2)
-print("done")
 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-print(best_hps.get("units"))
-print(best_hps.get("learning_rate"))
+width = best_hps.get("width")
+learning_rate = best_hps.get("learning_rate")
 
 kf = KFold(n_splits=5)  # random_state=1336)
 
@@ -86,11 +84,11 @@ for train_index, test_index in kf.split(x_train, y_train):
     model = tf.keras.Sequential(
         [
             layers.Rescaling(1.0 / 255),
-            layers.Conv2D(32, 3, activation="relu"),
+            layers.Conv2D(32, width, activation="relu"),
             layers.MaxPooling2D(),
-            layers.Conv2D(32, 3, activation="relu"),
+            layers.Conv2D(32, width, activation="relu"),
             layers.MaxPooling2D(),
-            layers.Conv2D(32, 3, activation="relu"),
+            layers.Conv2D(32, width, activation="relu"),
             layers.MaxPooling2D(),
             layers.Flatten(),
             layers.Dense(128, activation="relu"),
@@ -99,7 +97,7 @@ for train_index, test_index in kf.split(x_train, y_train):
     )
 
     model.compile(
-        optimizer="adam",
+        optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
@@ -116,6 +114,7 @@ for train_index, test_index in kf.split(x_train, y_train):
         y_train[test_start:test_stop],
         return_dict=True,
     )
+
     print(results)
     avg_accuracy += results["accuracy"] / 5
 
