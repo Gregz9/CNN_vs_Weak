@@ -19,14 +19,8 @@ print(x_train.shape)
 x_train = tf.reshape(x_train, shape=[-1, 28, 28, 1])
 x_test = tf.reshape(x_test, shape=[-1, 28, 28, 1])
 
-# y_train = tf.reshape(y_train, shape=[-1, 1])
-# y_test = tf.reshape(y_test, shape=[-1, 1])
-
-print(x_train.shape)
-
 train_ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
 val_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test))
-print(train_ds)
 
 train_ds = train_ds.batch(batch_size)
 val_ds = val_ds.batch(batch_size)
@@ -34,11 +28,8 @@ val_ds = val_ds.batch(batch_size)
 model = tf.keras.Sequential(
     [
         layers.Rescaling(1.0 / 255),
-        layers.Conv2D(32, 3, activation="relu"),
         layers.MaxPooling2D(),
-        layers.Conv2D(32, 3, activation="relu"),
-        layers.MaxPooling2D(),
-        layers.Conv2D(32, 3, activation="relu"),
+        layers.Conv2D(32, 7, activation="relu"),
         layers.MaxPooling2D(),
         layers.Flatten(),
         layers.Dense(128, activation="relu"),
@@ -48,7 +39,7 @@ model = tf.keras.Sequential(
 
 
 model.compile(
-    optimizer="adam",
+    optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
