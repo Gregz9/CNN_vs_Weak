@@ -4,6 +4,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import regularizers
 import tensorflow_datasets as tfds
 filedir = os.path.dirname(__file__)
+from functools import partial
 
 tf.keras.utils.set_random_seed(1336)
 
