@@ -9,7 +9,12 @@ from utils import *
 from sklearn.model_selection import KFold
 import keras_tuner as kt
 import seaborn as sns
+
 tf.keras.utils.set_random_seed(1336)
+"""
+Convolutional neural network used for MNIST dataset. Builds and fits data, takes time.
+"""
+
 batch_size = 128
 epochs = 6
 mnist = tf.keras.datasets.mnist
@@ -82,7 +87,7 @@ model = tf.keras.Sequential(
         # layers.MaxPooling2D(),
         # layers.Conv2D(32, width, activation="relu", padding='same'),
         # layers.MaxPooling2D(),
-        layers.Conv2D(32, width, activation="relu", padding='same'),
+        layers.Conv2D(32, width, activation="relu", padding="same"),
         layers.MaxPooling2D(),
         layers.Flatten(),
         layers.Dense(128, activation="relu"),
@@ -118,4 +123,3 @@ conf = perc(conf)
 
 plot_confusion(conf, title="Confusion matrix - CNN - MNIST")
 print(results)
-

@@ -6,6 +6,9 @@ import tensorflow_datasets as tfds
 filedir = os.path.dirname(__file__)
 import numpy as np
 
+"""
+Convolutional neural network used for pneumonia dataset. Builds and fits data.
+"""
 seed = 1336
 tf.keras.utils.set_random_seed(seed)
 tf.config.experimental.enable_op_determinism()

@@ -12,6 +12,9 @@ from sklearn.decomposition import PCA
 filedir = os.path.dirname(__file__)
 
 tf.keras.utils.set_random_seed(1336)
+"""
+PCA neural network used for pneumonia dataset. Builds and fits data, takes time.
+"""
 
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
@@ -51,9 +54,24 @@ kernel = tf.keras.regularizers.L2(l2=0.001)
 bias = tf.keras.regularizers.L2(l2=0.001)
 model = tf.keras.Sequential(
     [
-        layers.Dense(n_components, kernel_regularizer=kernel, bias_regularizer=bias, activation="relu"),
-        layers.Dense(n_components, kernel_regularizer=kernel, bias_regularizer=bias, activation="relu"),
-        layers.Dense(n_components, kernel_regularizer=kernel, bias_regularizer=bias, activation="relu"),
+        layers.Dense(
+            n_components,
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+            activation="relu",
+        ),
+        layers.Dense(
+            n_components,
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+            activation="relu",
+        ),
+        layers.Dense(
+            n_components,
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+            activation="relu",
+        ),
         layers.Dense(1),
     ]
 )
@@ -64,7 +82,9 @@ for batch, labels in train_ds:
         y_train = labels
 
     else:
-        X_train = tf.concat([X_train, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0)
+        X_train = tf.concat(
+            [X_train, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0
+        )
         y_train = tf.concat([y_train, labels], axis=0)
 
 for batch, labels in val_ds:
@@ -73,7 +93,9 @@ for batch, labels in val_ds:
         y_test = labels
 
     else:
-        X_test = tf.concat([X_test, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0)
+        X_test = tf.concat(
+            [X_test, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0
+        )
         y_test = tf.concat([y_test, labels], axis=0)
 
 

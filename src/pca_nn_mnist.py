@@ -11,6 +11,10 @@ import keras_tuner as kt
 from sklearn.model_selection import KFold
 
 tf.keras.utils.set_random_seed(1336)
+"""
+PCA neural network used for MNIST dataset. Builds and fits data.
+"""
+
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
