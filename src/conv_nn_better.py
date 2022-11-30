@@ -7,7 +7,7 @@ import keras_tuner as kt
 filedir = os.path.dirname(__file__)
 from functools import partial
 
-seed = 1337
+seed = 1336
 tf.keras.utils.set_random_seed(seed)
 tf.config.experimental.enable_op_determinism()
 
@@ -22,7 +22,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
     validation_split=0.1, 
     subset="training",
     labels="inferred",
-    seed=seed,
+    seed=1337,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCHSIZE,
     color_mode="grayscale",
@@ -32,7 +32,7 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
     validation_split=0.1, 
     subset="validation",
     labels="inferred",
-    seed=seed,
+    seed=1337,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCHSIZE,
     color_mode="grayscale",
@@ -41,7 +41,7 @@ val_ds = tf.keras.utils.image_dataset_from_directory(
 test_ds = tf.keras.utils.image_dataset_from_directory(
     TESTDIR,
     labels="inferred",
-    seed=seed,
+    seed=1337,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCHSIZE,
     color_mode="grayscale",
@@ -147,7 +147,7 @@ tuner = kt.Hyperband(
     directory="conv_nn_pneu-params",
 )
 
-tuner.search(train_ds, epochs=10, validation_data=val_ds)
+tuner.search(train_ds, epochs=10, validation_data=val_ds, class_weight=class_weight)
 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 lam = best_hps.get("lambda")
 learning_rate = best_hps.get("learning_rate")
