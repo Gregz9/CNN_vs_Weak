@@ -27,6 +27,7 @@ pca.fit(x_train_flat)
 
 x_train_pca = pca.transform(x_train_flat)
 
+
 def model_builder(hp):
     hp_units = hp.Int("units", min_value=32, max_value=512, step=32)
     model = tf.keras.Sequential(
@@ -110,4 +111,4 @@ plot_confusion(conf, title="Confusion matrix - PCA_NN - MNIST")
 
 print(results)
 
-print(results['accuracy'])
+print(results["accuracy"])
