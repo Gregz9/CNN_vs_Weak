@@ -6,7 +6,10 @@ from PIL import Image
 import time
 import matplotlib.pyplot as plt
 from utils import *
-from sklearn.ensemble import RandomForestClassifier
+import tensorflow_decision_forests as tfdf
+from sklearn.decomposition import PCA
+
+tf.keras.utils.set_random_seed(1336)
 
 batch_size = 128
 epochs = 6
@@ -21,17 +24,29 @@ x_train_flat = tf.reshape(x_train, shape=[-1, 784])
 x_test_flat = tf.reshape(x_test, shape=[-1, 784])
 
 start = time.time()
-W = PCA_fit(x_train_flat, n_components)
 
-train_features = tf.matmul(x_train_flat, W)
-test_features = tf.matmul(x_test_flat, W)
+pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
+pca.fit(x_train_flat)
 
-print(train_features.shape)
-print(test_features.shape)
+x_train_pca = pca.transform(x_train_flat)
+x_test_pca = pca.transform(x_test_flat)
 
-forest = RandomForestClassifier(random_state=1337)
+train_ds = tf.data.Dataset.from_tensor_slices((x_train_pca, y_train))
+val_ds = tf.data.Dataset.from_tensor_slices((x_test_pca, y_test))
 
-forest.fit(train_features, y_train)
+train_ds = train_ds.batch(batch_size)
+val_ds = val_ds.batch(batch_size)
 
-print(f"Time taken for pca + rf: {time.time() - start}")
-print(forest.score(test_features, y_test))
+
+forest = tfdf.keras.RandomForestModel(
+    verbose=1,
+    max_depth=16,
+    random_seed=1336,
+)
+
+forest.fit(x=train_ds)
+
+forest.compile(metrics=["accuracy"])
+
+print(forest.evaluate(train_ds, return_dict=True))
+print(forest.evaluate(test_ds, return_dict=True))
