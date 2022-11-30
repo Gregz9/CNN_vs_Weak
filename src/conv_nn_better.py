@@ -3,11 +3,13 @@ import os
 from tensorflow.keras import layers
 from tensorflow.keras import regularizers
 import tensorflow_datasets as tfds
-
+import keras_tuner as kt
 filedir = os.path.dirname(__file__)
 from functools import partial
 
-tf.keras.utils.set_random_seed(1336)
+seed = 1337
+tf.keras.utils.set_random_seed(seed)
+tf.config.experimental.enable_op_determinism()
 
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
@@ -17,8 +19,20 @@ IMG_WIDTH = 227
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
     TRAINDIR,
+    validation_split=0.1, 
+    subset="training",
     labels="inferred",
-    seed=1337,
+    seed=seed,
+    image_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=BATCHSIZE,
+    color_mode="grayscale",
+)
+val_ds = tf.keras.utils.image_dataset_from_directory(
+    TRAINDIR,
+    validation_split=0.1, 
+    subset="validation",
+    labels="inferred",
+    seed=seed,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCHSIZE,
     color_mode="grayscale",
@@ -27,7 +41,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
 test_ds = tf.keras.utils.image_dataset_from_directory(
     TESTDIR,
     labels="inferred",
-    seed=1337,
+    seed=seed,
     image_size=(IMG_HEIGHT, IMG_WIDTH),
     batch_size=BATCHSIZE,
     color_mode="grayscale",
@@ -48,7 +62,7 @@ test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 
 def model_builder(hp):
-    hp_lambda = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3])
+    hp_lambda = hp.Choice("lambda", values=[0.0, 1e-5, 1e-4, 1e-3])
     hp_learning_rate = hp.Choice("learning_rate", values=[1e-3, 1e-2, 1e-1])
 
     kernel = tf.keras.regularizers.L2(l2=hp_lambda)
@@ -63,8 +77,6 @@ def model_builder(hp):
                 strides=(4, 4),
                 padding="valid",
                 activation="relu",
-                kernel_regularizer=kernel,
-                bias_regularizer=bias,
             ),
             tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
             tf.keras.layers.Conv2D(
@@ -73,8 +85,6 @@ def model_builder(hp):
                 strides=(1, 1),
                 padding="same",
                 activation="relu",
-                kernel_regularizer=kernel,
-                bias_regularizer=bias,
             ),
             tf.keras.layers.MaxPooling2D(
                 pool_size=(3, 3), strides=2, padding="valid"
@@ -85,8 +95,6 @@ def model_builder(hp):
                 strides=(1, 1),
                 padding="same",
                 activation="relu",
-                kernel_regularizer=kernel,
-                bias_regularizer=bias,
             ),  # C5
             tf.keras.layers.Conv2D(
                 384,
@@ -94,8 +102,6 @@ def model_builder(hp):
                 strides=(1, 1),
                 padding="same",
                 activation="relu",
-                kernel_regularizer=kernel,
-                bias_regularizer=bias,
             ),  # C6
             tf.keras.layers.Conv2D(
                 256,
@@ -103,8 +109,6 @@ def model_builder(hp):
                 strides=(1, 1),
                 padding="same",
                 activation="relu",
-                kernel_regularizer=kernel,
-                bias_regularizer=bias,
             ),
             tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
             tf.keras.layers.Flatten(),
@@ -143,10 +147,13 @@ tuner = kt.Hyperband(
     directory="conv_nn_pneu-params",
 )
 
-tuner.search(train_ds, epochs=10, validation_split=0.2)
+tuner.search(train_ds, epochs=10, validation_data=val_ds)
 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 lam = best_hps.get("lambda")
 learning_rate = best_hps.get("learning_rate")
+
+print(lam)
+print(learning_rate)
 
 
 kernel = tf.keras.regularizers.L2(l2=lam)
@@ -161,8 +168,6 @@ model = tf.keras.Sequential(
             strides=(4, 4),
             padding="valid",
             activation="relu",
-            kernel_regularizer=kernel,
-            bias_regularizer=bias,
         ),
         tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
         tf.keras.layers.Conv2D(
@@ -171,8 +176,6 @@ model = tf.keras.Sequential(
             strides=(1, 1),
             padding="same",
             activation="relu",
-            kernel_regularizer=kernel,
-            bias_regularizer=bias,
         ),
         tf.keras.layers.MaxPooling2D(
             pool_size=(3, 3), strides=2, padding="valid"
@@ -183,8 +186,6 @@ model = tf.keras.Sequential(
             strides=(1, 1),
             padding="same",
             activation="relu",
-            kernel_regularizer=kernel,
-            bias_regularizer=bias,
         ),  # C5
         tf.keras.layers.Conv2D(
             384,
@@ -192,8 +193,6 @@ model = tf.keras.Sequential(
             strides=(1, 1),
             padding="same",
             activation="relu",
-            kernel_regularizer=kernel,
-            bias_regularizer=bias,
         ),  # C6
         tf.keras.layers.Conv2D(
             256,
@@ -201,8 +200,6 @@ model = tf.keras.Sequential(
             strides=(1, 1),
             padding="same",
             activation="relu",
-            kernel_regularizer=kernel,
-            bias_regularizer=bias,
         ),
         tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
         tf.keras.layers.Flatten(),
@@ -231,10 +228,11 @@ model.compile(
 )
 
 
+
 model.fit(
     train_ds,
     batch_size=BATCHSIZE,
     validation_data=test_ds,
-    epochs=10,
+    epochs=15,
     class_weight=class_weight,
 )
