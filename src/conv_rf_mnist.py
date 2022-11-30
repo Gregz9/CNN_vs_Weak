@@ -9,6 +9,9 @@ from utils import *
 import tensorflow_decision_forests as tfdf
 
 tf.keras.utils.set_random_seed(1336)
+"""
+Convolutional random forest used for MNIST dataset. Builds and fits data.
+"""
 
 batch_size = 128
 epochs = 1
@@ -66,7 +69,10 @@ features_test = val_ds.map(lambda batch, label: (feature_extractor(batch), label
 # tuner.choice("max_depth", [4, 6, 8, 10, 12, 14, 16, 18, 20])
 
 forest = tfdf.keras.RandomForestModel(
-    verbose=1, max_depth=25, random_seed=1337, num_trees=300#, tuner=tuner#, check_dataset=False
+    verbose=1,
+    max_depth=25,
+    random_seed=1337,
+    num_trees=300,  # , tuner=tuner#, check_dataset=False
 )
 forest.fit(x=features_train)
 

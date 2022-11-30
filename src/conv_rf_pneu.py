@@ -8,6 +8,11 @@ import matplotlib.pyplot as plt
 from utils import *
 import tensorflow_decision_forests as tfds
 
+tf.keras.utils.set_random_seed(1336)
+"""
+Convolutional random forest used for pneumonia dataset. Builds and fits data.
+"""
+
 batch_size = 128
 epochs = 3
 mnist = tf.keras.datasets.mnist
