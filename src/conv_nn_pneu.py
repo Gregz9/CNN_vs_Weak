@@ -10,8 +10,8 @@ tf.keras.utils.set_random_seed(1336)
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
 BATCHSIZE = 128
-IMG_HEIGHT = 200
-IMG_WIDTH = 200
+IMG_HEIGHT = 227
+IMG_WIDTH = 227
 
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
@@ -50,22 +50,31 @@ bias = tf.keras.regularizers.L2(l2=0.001)
 
 model = tf.keras.Sequential(
     [
-        tf.keras.layers.Rescaling(1.0 / 255),
+        #tf.keras.layers.Rescaling(1.0 / 255),
         tf.keras.layers.Conv2D(
-            32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
-        ),
-        tf.keras.layers.MaxPooling2D(),
+            96, 11, strides=(4,4), padding='valid', activation="relu", kernel_regularizer=kernel, bias_regularizer=bias),
+
+        tf.keras.layers.MaxPooling2D(pool_size=(3,3), strides=2, padding='valid'),
         tf.keras.layers.Conv2D(
-            32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
-        ),
-        tf.keras.layers.MaxPooling2D(),
+            256, 5, strides=(1,1), padding='same', activation="relu", kernel_regularizer=kernel, bias_regularizer=bias), 
+          
+        tf.keras.layers.MaxPooling2D(pool_size=(3,3), strides=2, padding='valid'), # S4
         tf.keras.layers.Conv2D(
-            32, 7, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
-        ),
-        tf.keras.layers.MaxPooling2D(),
+            384, 3, strides=(1,1), padding='same', activation="relu", kernel_regularizer=kernel, bias_regularizer=bias), #C5
+        tf.keras.layers.Conv2D(
+            384, 3, strides=(1,1), padding='same', activation="relu", kernel_regularizer=kernel, bias_regularizer=bias), #C6
+        tf.keras.layers.Conv2D(
+            256, 3, strides=(1,1), padding='same', activation="relu", kernel_regularizer=kernel, bias_regularizer=bias), 
+        
+        tf.keras.layers.MaxPooling2D(pool_size=(3,3), strides=2, padding='valid'), 
         tf.keras.layers.Flatten(),
+        tf.keras.layers.Dropout(0.1),
         tf.keras.layers.Dense(
-            128, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
+            4096, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
+        ),
+        tf.keras.layers.Dropout(0.1),
+        tf.keras.layers.Dense(
+            4096, activation="relu", kernel_regularizer=kernel, bias_regularizer=bias
         ),
         tf.keras.layers.Dense(1),
     ]
@@ -81,6 +90,6 @@ model.fit(
     train_ds,
     batch_size=BATCHSIZE,
     validation_data=test_ds,
-    epochs=100,
+    epochs=20,
     class_weight=class_weight,
 )

@@ -6,12 +6,12 @@ from PIL import Image
 import time
 import matplotlib.pyplot as plt
 from utils import *
-import tensorflow_decision_forests as tfds
+import tensorflow_decision_forests as tfdf
 
 tf.keras.utils.set_random_seed(1336)
 
 batch_size = 128
-epochs = 6
+epochs = 1
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -62,8 +62,11 @@ feature_extractor = tf.keras.Model(
 features_train = train_ds.map(lambda batch, label: (feature_extractor(batch), label))
 features_test = val_ds.map(lambda batch, label: (feature_extractor(batch), label))
 
-forest = tfds.keras.RandomForestModel(
-    verbose=1, max_depth=16, random_seed=1337, check_dataset=False
+# tuner = tfdf.tuner.RandomSearch(num_trials=20)
+# tuner.choice("max_depth", [4, 6, 8, 10, 12, 14, 16, 18, 20])
+
+forest = tfdf.keras.RandomForestModel(
+    verbose=1, max_depth=25, random_seed=1337, num_trees=300#, tuner=tuner#, check_dataset=False
 )
 forest.fit(x=features_train)
 
