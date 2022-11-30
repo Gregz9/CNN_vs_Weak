@@ -74,6 +74,7 @@ print(width)
 print(learning_rate)
 
 
+start = time.time()
 model = tf.keras.Sequential(
     [
         layers.Rescaling(1.0 / 255),
@@ -102,6 +103,8 @@ model.fit(
     batch_size=batch_size,
     epochs=epochs,
 )
+
+print(f"Time taken: {time.time() - start}")
 
 results = model.evaluate(
     x_test,

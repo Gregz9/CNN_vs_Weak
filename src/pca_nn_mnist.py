@@ -16,20 +16,16 @@ mnist = tf.keras.datasets.mnist
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 x_train, x_test = x_train / 255.0, x_test / 255.0
 
-n_components = 80
+n_components = 50
 
 x_train_flat = tf.reshape(x_train, shape=[-1, 784])
 x_test_flat = tf.reshape(x_test, shape=[-1, 784])
 
 pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
-# pca = PCA(n_components=n_components, svd_solver="full", random_state=1336)
 
-print("Fitting PCA")
-start = time.time()
 pca.fit(x_train_flat)
 
 x_train_pca = pca.transform(x_train_flat)
-x_train_pca = pca.transform(x_test_flat)
 
 def model_builder(hp):
     hp_units = hp.Int("units", min_value=32, max_value=512, step=32)
@@ -68,22 +64,18 @@ learning_rate = best_hps.get("learning_rate")
 
 print(units)
 print(learning_rate)
-folds = 5
 
 
+start = time.time()
 pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
 pca.fit(x_train_flat)
 
 x_train_pca = pca.transform(x_train_flat)
 x_test_pca = pca.transform(x_test_flat)
 
-y_train_cv = y_train
-
 
 model = tf.keras.Sequential(
     [
-        layers.Dense(units, activation="relu"),
-        layers.Dense(units, activation="relu"),
         layers.Dense(units, activation="relu"),
         layers.Dense(10),
     ]
@@ -102,6 +94,8 @@ model.fit(
     epochs=6,
     batch_size=64,
 )
+
+print(f"Time taken: {time.time() - start}")
 
 results = model.evaluate(
     x_test_pca,
