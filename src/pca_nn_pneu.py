@@ -144,7 +144,7 @@ with tf.device('/gpu:0'):
         objective="val_accuracy",
         max_epochs=10,
         factor=3,
-        directory="conv_nn_pneu-params",
+        directory="pca_nn_pneu-params",
     )
 
     tuner.search(
