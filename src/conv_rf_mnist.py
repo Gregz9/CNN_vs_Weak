@@ -8,8 +8,10 @@ import matplotlib.pyplot as plt
 from utils import *
 import tensorflow_decision_forests as tfds
 
+tf.keras.utils.set_random_seed(1336)
+
 batch_size = 128
-epochs = 1
+epochs = 6
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -39,7 +41,7 @@ model = tf.keras.Sequential(
 
 
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
