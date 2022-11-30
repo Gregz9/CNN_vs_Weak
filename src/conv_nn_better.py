@@ -3,6 +3,7 @@ import os
 from tensorflow.keras import layers
 from tensorflow.keras import regularizers
 import tensorflow_datasets as tfds
+
 filedir = os.path.dirname(__file__)
 from functools import partial
 
@@ -45,46 +46,190 @@ AUTOTUNE = tf.data.AUTOTUNE
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
-kernel = tf.keras.regularizers.L2(l2=0.001)
-bias = tf.keras.regularizers.L2(l2=0.001)
+
+def model_builder(hp):
+    hp_lambda = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3])
+    hp_learning_rate = hp.Choice("learning_rate", values=[1e-3, 1e-2, 1e-1])
+
+    kernel = tf.keras.regularizers.L2(l2=hp_lambda)
+    bias = tf.keras.regularizers.L2(l2=hp_lambda)
+
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Rescaling(1.0 / 255),
+            tf.keras.layers.Conv2D(
+                96,
+                11,
+                strides=(4, 4),
+                padding="valid",
+                activation="relu",
+                kernel_regularizer=kernel,
+                bias_regularizer=bias,
+            ),
+            tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
+            tf.keras.layers.Conv2D(
+                256,
+                5,
+                strides=(1, 1),
+                padding="same",
+                activation="relu",
+                kernel_regularizer=kernel,
+                bias_regularizer=bias,
+            ),
+            tf.keras.layers.MaxPooling2D(
+                pool_size=(3, 3), strides=2, padding="valid"
+            ),  # S4
+            tf.keras.layers.Conv2D(
+                384,
+                3,
+                strides=(1, 1),
+                padding="same",
+                activation="relu",
+                kernel_regularizer=kernel,
+                bias_regularizer=bias,
+            ),  # C5
+            tf.keras.layers.Conv2D(
+                384,
+                3,
+                strides=(1, 1),
+                padding="same",
+                activation="relu",
+                kernel_regularizer=kernel,
+                bias_regularizer=bias,
+            ),  # C6
+            tf.keras.layers.Conv2D(
+                256,
+                3,
+                strides=(1, 1),
+                padding="same",
+                activation="relu",
+                kernel_regularizer=kernel,
+                bias_regularizer=bias,
+            ),
+            tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
+            tf.keras.layers.Flatten(),
+            # tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(
+                4096,
+                activation="relu",
+                kernel_regularizer=kernel,
+                bias_regularizer=bias,
+            ),
+            # tf.keras.layers.Dropout(0.2),
+            tf.keras.layers.Dense(
+                4096,
+                activation="relu",
+                kernel_regularizer=kernel,
+                bias_regularizer=bias,
+            ),
+            tf.keras.layers.Dense(1),
+        ]
+    )
+
+    model.compile(
+        optimizer=tf.keras.optimizers.Adamax(learning_rate=hp_learning_rate),
+        loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+        metrics=["accuracy"],
+    )
+
+    return model
+
+
+tuner = kt.Hyperband(
+    model_builder,
+    objective="val_accuracy",
+    max_epochs=10,
+    factor=3,
+    directory="conv_nn_pneu-params",
+)
+
+tuner.search(train_ds, epochs=10, validation_split=0.2)
+best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+lam = best_hps.get("lambda")
+learning_rate = best_hps.get("learning_rate")
+
+
+kernel = tf.keras.regularizers.L2(l2=lam)
+bias = tf.keras.regularizers.L2(l2=lam)
 
 model = tf.keras.Sequential(
     [
         tf.keras.layers.Rescaling(1.0 / 255),
         tf.keras.layers.Conv2D(
-            96, 11, strides=(4,4), padding='valid', activation="relu"), #kernel_regularizer=kernel, bias_regularizer=bias),
-
-        tf.keras.layers.MaxPooling2D(pool_size=(3,3), strides=2, padding='valid'),
+            96,
+            11,
+            strides=(4, 4),
+            padding="valid",
+            activation="relu",
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+        ),
+        tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
         tf.keras.layers.Conv2D(
-            256, 5, strides=(1,1), padding='same', activation="relu"),# kernel_regularizer=kernel, bias_regularizer=bias), 
-          
-        tf.keras.layers.MaxPooling2D(pool_size=(3,3), strides=2, padding='valid'), # S4
+            256,
+            5,
+            strides=(1, 1),
+            padding="same",
+            activation="relu",
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+        ),
+        tf.keras.layers.MaxPooling2D(
+            pool_size=(3, 3), strides=2, padding="valid"
+        ),  # S4
         tf.keras.layers.Conv2D(
-            384, 3, strides=(1,1), padding='same', activation="relu"), #kernel_regularizer=kernel, bias_regularizer=bias), #C5
+            384,
+            3,
+            strides=(1, 1),
+            padding="same",
+            activation="relu",
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+        ),  # C5
         tf.keras.layers.Conv2D(
-            384, 3, strides=(1,1), padding='same', activation="relu"),# kernel_regularizer=kernel, bias_regularizer=bias), #C6
+            384,
+            3,
+            strides=(1, 1),
+            padding="same",
+            activation="relu",
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+        ),  # C6
         tf.keras.layers.Conv2D(
-            256, 3, strides=(1,1), padding='same', activation="relu"),# kernel_regularizer=kernel, bias_regularizer=bias), 
-        
-        tf.keras.layers.MaxPooling2D(pool_size=(3,3), strides=2, padding='valid'), 
+            256,
+            3,
+            strides=(1, 1),
+            padding="same",
+            activation="relu",
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+        ),
+        tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
         tf.keras.layers.Flatten(),
-        #tf.keras.layers.Dropout(0.2),
+        # tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(
-            4096, activation="relu"),# kernel_regularizer=kernel, bias_regularizer=bias
-        #),
-        #tf.keras.layers.Dropout(0.2),
+            4096,
+            activation="relu",
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+        ),
+        # tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(
-            4096, activation="relu"), #, kernel_regularizer=kernel, bias_regularizer=bias
-        #),
+            4096,
+            activation="relu",
+            kernel_regularizer=kernel,
+            bias_regularizer=bias,
+        ),
         tf.keras.layers.Dense(1),
     ]
 )
 
 model.compile(
-    optimizer="adamax",
+    optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
+
 
 model.fit(
     train_ds,
