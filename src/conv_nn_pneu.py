@@ -6,6 +6,9 @@ import tensorflow_datasets as tfds
 filedir = os.path.dirname(__file__)
 
 tf.keras.utils.set_random_seed(1336)
+"""
+Convolutional neural network used for pneumonia dataset. Builds and fits data.
+"""
 
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"

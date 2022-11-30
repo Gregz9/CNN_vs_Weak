@@ -11,6 +11,10 @@ import keras_tuner as kt
 from sklearn.model_selection import KFold
 
 tf.keras.utils.set_random_seed(1336)
+"""
+PCA neural network used for MNIST dataset. Builds and fits data.
+"""
+
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -26,6 +30,7 @@ pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
 pca.fit(x_train_flat)
 
 x_train_pca = pca.transform(x_train_flat)
+
 
 def model_builder(hp):
     hp_units = hp.Int("units", min_value=32, max_value=512, step=32)
@@ -110,4 +115,4 @@ plot_confusion(conf, title="Confusion matrix - PCA_NN - MNIST")
 
 print(results)
 
-print(results['accuracy'])
+print(results["accuracy"])

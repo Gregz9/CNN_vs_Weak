@@ -10,6 +10,9 @@ import tensorflow_decision_forests as tfdf
 from sklearn.decomposition import PCA
 
 tf.keras.utils.set_random_seed(1336)
+"""
+PCA random forest used for MNIST dataset. Builds and fits data.
+"""
 
 batch_size = 128
 epochs = 6
