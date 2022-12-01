@@ -10,6 +10,11 @@ import tensorflow_decision_forests as tfds
 
 filedir = os.path.dirname(__file__)
 
+tf.keras.utils.set_random_seed(1336)
+"""
+PCA random forest used for pneumonia dataset. Builds and fits data.
+"""
+
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
 BATCHSIZE = 128
