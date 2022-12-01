@@ -74,6 +74,13 @@ We found a dog driving a car down Hollywood Boulevard. It had sunglasses on, but
 
 \section{Introduction}
 
+Some might say that Minsky himself used PCA back in the stone age, but we have made numerous improvements to the PCA algorithm:
+
+\begin{itemize}
+  \item - XD random
+  \item - \cite{halko}
+\end{itemize}
+
 The task of image recognition and classification is a great challenge in machine learning, as there are a large number of features present in the data which slow down our training. For a relatively small one-channel image of $200$ by $200$ pixels, the naive approach of using every pixel as a feature becomes unfeasable, as we now have $40000$ features. Clearly, some form of dimension reduction must be used to rectify this problem, and Convolutional Neural Networks are regarded as the gold standard for this. CNNs are able to reduce the dimensionality while extracting useful information in each layer, for example by finding edges in the first layer, combinations of edges that make a shape in the next layer, and combinations of shapes that resemble an object in the last layer. However, CNNs have many hyperparameters that need to be adjusted to achieve optimal performance, and a slow and computationally intensive training process. In this paper, we explore alternative models for image classification, using Principal Component Analysis and Random Forests in combination with parts of the traditional CNN model. We will investigate how these architectures perform for a simple image classification problem such as the MNIST dataset versus a more difficult classification problem in the form of pneumonia prediction from X-ray images. 
 
 More specifically, we will compare four different architectures. First we will use a traditional CNN, where a series convolutional layers is followed by a series fully connected layers. Then we will modify our CNN to create a CNN-RF model, where the features extracted by the convolutional layers are fed into a Random Forest instead of a series of fully connected layers. Finally, we will make use of Principal Component Analysis instead of convolution for dimensionality reduction, feeding the results of this stage into either a Neural Network or a Random Forest. In doing this, we hope to answer the following question: what is the best way to tackle the challenges associated with image classification?
@@ -157,11 +164,11 @@ Below is a description of each of the datasets used in this report.
 
 \subsubsection{MNIST}
 
-The MNIST dataset is a well known multiclass classification problem used to test machine learning algorithms. It consists of $70000$ black and white images of hand drawn digits, each $28$ by $28$ pixels. Each image is labeled with one of ten classes, corresponding to the digit it depicts. The dataset is divided into $60000$ training images and $10000$ validation images. This dataset is essentially uniformly distributed, with all classes containing around $9 - 11\%$ of the total dataset.
+The MNIST dataset is a well known multiclass classification problem used to test machine learning algorithms. It consists of $70000$ black and white images of hand drawn digits, each $28$ by $28$ pixels. Each image is labeled with one of ten classes, corresponding to the digit it depicts. The dataset is divided into $60000$ training images and $10000$ test images. This dataset is essentially uniformly distributed, with all classes containing around $9 - 11\%$ of the total dataset.
 
 \subsubsection{Guangzhou Chest X-Ray Pneumonia Dataset}
 
-The Guangzhou Chest X-Ray Pneumonia Dataset consists of $5856$ X-Ray images of children between the ages of one to five. The images were taken from the Woman and Children's Medical Center in Guangzhou, China. The dataset is divided into a training set of $5232$ images and $624$ validation images. The dataset is not evenly distributed, having $74.2\%$ instances of pneumonia in the training set and $62.5\%$ instances of pneumonia in the validation set.
+The Guangzhou Chest X-Ray Pneumonia Dataset consists of $5856$ X-Ray images of children between the ages of one to five. The images were taken from the Woman and Children's Medical Center in Guangzhou, China. The dataset is divided into a training set of $5232$ images and $624$ test images. The dataset is not evenly distributed, having $74.2\%$ instances of pneumonia in the training set and $62.5\%$ instances of pneumonia in the testing set. The data was collected and labeled as a part of the article {\it Identifying Medical Diagnoses and Treatable Diseases by Image-Based Deep Learning}, published in {\it Cell} \cite{xray}.
 
 \subsection{Implementation}
 
@@ -169,25 +176,60 @@ Our implementation can be found at \texttt{github.com/Gregz9/CNN\_vs\_weak.git}.
 
 All neural network stages were implemented using the Tensorflow library. PCA was implemented as a custom layer using the Keras API, or by mapping the operation to the whole dataset using Tensorflow's \texttt{dataset.map} functionality, depending on the model. Random Forests were implemented using the Tensorflow Decision Forests library.
 
+For hyperparameter tuning, we used the Keras Tuner library \cite{kerastuner}.
+
 \section{Results}
 
 We found so much stuff man
 
 \subsection{MNIST}
 
+To test our hybrid models against traditional methods, we applied them all to the MNIST dataset.
+
 \subsubsection{Traditional Convolutional Neural Network}
+
+As is well known, convolutional neural networks perform excellent on the MNIST dataset, achieving test accuracies rivaling humans. As an initial guess for the architecture, we used only a single convolutional layer\footnote{We follow the terminology used in Goodfellow et Al. \cite[336]{gbc}, where what is denoted as a single convolutional layer includes the convolutional, detector and pooling stage} followed by a dense layer. The convolutional layer had $32$ filters. By gridsearch, we found the optimal filter width to be $7$ and the optimal learning rate to be $0.001$. With these hyperparameters we achieved a test accuracy of $98.8\%$, a very good result. Based on this result, we conclude that no more hidden layers or regularization parameters need to be included. Looking at the heatmap (Fig.~\ref{mnistheatmap_cnn}), we can see that our predictions are excellent in all classes, never misclassifying any single class more than $2.4\%$ of the time.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=8in]{figure/conf_cnn_MNIST.png}}
+\caption{Confusion matrix for MNIST dataset classified using a CNN. From this figure, we can see that most misclassifications occur for digits that look similar: eights are sometimes misidentified as zeroes, and fours and nines are sometimes misidentified as eachother.}
+\label{mnistheatmap_cnn}
+\end{figure}
 
 \subsubsection{Convolution followed by a Random Forest}
 
+Given that we have achieved excellent results by using a CNN, we may don't expect to achieve much better results by sending the extracted features to a random forest. Regardless, our testing found that by using the same CNN model we found previously, 
+
 \subsubsection{Principal Component Analysis followed by a Neural Network}
+
+Replacing the convolutional stage with a simpler form of dimensionality reduction, namely PCA, we can see that we are able to reduce the dimensionality of our dataset while retaining a large amount of the information. Looking at figure~\ref{pcacomp}, we can see that even when using only the $50$ first principal components, the numbers are still readable. From this, we can assume that we can reduce the amount of features sent into our neural net from $784$ to less than $100$ features, and still expect reasonable results.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=5in]{figure/pcacomp.png}}
+\caption{Comparison showing the amount of information lost by reducing the amount of principal components}
+\label{pcacomp}
+\end{figure}
+
+Using different amount of principal components, we sent the reduced dataset into a neural network with three hidden layers. After testing different amounts of principal components to keep, and tuning the hyperparameters based on these, we found that even with only $50$ principal components, we achieved a test accuracy of $97.8\%$. This is comparable to the accuracy obtained by a traditional convolutional neural network. When considering the computational effort, we need to consider the performance benefit that modern GPU's bring, being specifically designed to run neural networks efficiently. This is very apparent in our testing: When using only a CPU, the PCA-NN model was much less intensive, requiring only $17$ seconds to complete training, while the convolutional neural network used $164$ seconds. This tells us that when computational resources are limited, simpler architectures can give reasonable results in a fraction of the time. However, when using a GPU with CUDA cores, the story is quite different: Here, the CNN used only $6$ seconds, while the PCA-NN model took $12$ seconds\footnote{The fact that this model took longer than the CNN is most likely because the PCA function we use only runs on the CPU, meaning that only the neural net part is actually running on the GPU}. Looking at the confusion matrix (Fig.~\ref{mnistheatmap_pcann}), we can see that we are again achieving very few misclassifications using the PCA-NN model.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=8in]{figure/conf_pca_nn_MNIST.png}}
+\caption{Confusion matrix for MNIST dataset classified using PCA followed by a neural network. Here we can see that misclassifications are slightly more common than when using a traditional CNN, but the results are still good.}
+\label{mnistheatmap_pcann}
+\end{figure}
+
 
 \subsubsection{Principal Component Analysis followed by a Random Forest}
 
+Satisfied with the results achieved by replacing the convolutional stage with Principal Component Analysis, we attempt to sidestep neural networks all together, and use PCA followed by a random forest. Here, we achieved a reasonable result of $94.7\%$ accuracy on the test set. Although this is not as impressive as the previous models, there
+
 \subsection{Guangzhou Pneumonia Data}
 
-Hopefully this is real
+As previously stated, the Guangzhou Pneumonia Dataset was collected and labeled as part of the article {\it Identifying Medical Diagnoses and Treatable Diseases by Image-Based Deep Learning}. In this article, the authors used transfer learning using a network previously trained on ImageNet to classify the x-ray images. With this method, they achieved a test accuracy of $92.8\%$ \cite[1127]{xray}. We now turn our attention to this dataset, and see if we can achieve similar results using our methods.
 
 \subsubsection{Traditional Convolutional Neural Network}
+
+Determining whether an x-ray shows a case of pneumonia or not is clearly a much more difficult classification problem than our previous dataset. Therefore, we initially had problems designing an architecture which achieved much higher than $80\%$ test accuracy. Clearly, we are not able to use a simple one convolutional layer model like we were able to on the MNIST dataset, and designing a general convolutional neural network architecture is a very complex task. Thus, we turn to the literature, and explore models which have been proven to be effective at image recognition. Out of the architectures presented in BOOK \cite{geron}, we decided to try AlexNet, which won the ILSVRC 2012 challenge and is a relatively shallow network having $11$ hidden layers. Using this model, we achieved a testing accuracy of $87.8\%$. Comparing our result to those obtained by Kermany et Al., we see that our model is slightly more ass.
 
 \subsubsection{Convolution followed by a Random Forest}
 
@@ -197,7 +239,26 @@ Hopefully this is real
 
 \section{Conclusion}
 
+% \begin{table}[h]
+% \caption{Accuracy by }
+% \begin{center}
+% \label{datasettable}
+% \begin{tabular}{| c | l | l | l |}
+% \hline
+% Dataset & Number of instances & Features & Type \\
+% \hline
+% Franke Function (raw data) & 400 & 2 & regression \\
+% Franke Function (polynomial features) & 400 & 56 & regression \\
+% Wisconsin Breast Cancer & 569 & 30 & binary classification \\
+% MNIST 8x8 & 1797 & 64 & multiclass classification (10 classes) \\
+% \hline
+% \end{tabular}
+% \end{center}
+% \end{table}
+
 I have realized that I am cooler than Eric.
+
+The children of Guangzhou province were saved to a certain extent. They all lived happily ever after.
 
 \bibliographystyle{apalike}
 \bibliography{bibliography}
