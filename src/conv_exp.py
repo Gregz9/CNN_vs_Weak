@@ -51,7 +51,7 @@ train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 model = tf.keras.Sequential([
-    #tf.keras.layers.Rescaling(1.0/255),
+    tf.keras.layers.Rescaling(1.0/255),
     DefaultConv2D(64, kernel_size=7, strides=2),
     tf.keras.layers.BatchNormalization(), 
     tf.keras.layers.Activation('relu'),
@@ -68,8 +68,9 @@ model.add(tf.keras.layers.Flatten())
 model.add(tf.keras.layers.Dense(1))
 
 model.compile(
-    # optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.0002),
-    optimizer=tf.keras.optimizers.SGD(learning_rate=0.0003),
+    optimizer=tf.keras.optimizers.Adagrad(learning_rate=0.0003),
+    # optimizer=tf.keras.optimizers.SGD(learning_rate=0.0003),
+    # optimizer=tf.keras.optimizers.Adam(learning_rate=3*10e-6),
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
