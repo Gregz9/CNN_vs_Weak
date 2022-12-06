@@ -63,7 +63,7 @@ test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 
 def model_builder(hp):
-    hp_learning_rate = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3, 1e-2, 1e-1])
+    hp_learning_rate = hp.Choice("learning_rate", values=[1e-5, 1e-4, 1e-3, 1e-2, 1e-1])
 
     model = tf.keras.Sequential(
         [
