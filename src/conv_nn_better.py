@@ -14,7 +14,7 @@ tf.config.experimental.enable_op_determinism()
 
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
-BATCHSIZE = 256 
+BATCHSIZE = 256
 IMG_HEIGHT = 227
 IMG_WIDTH = 227
 
@@ -63,7 +63,9 @@ test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 
 def model_builder(hp):
-    hp_learning_rate = hp.Choice("learning_rate", values=[2*1e-5, 2*1e-4, 2*1e-3, 2*1e-2, 2*1e-1])
+    hp_learning_rate = hp.Choice(
+        "learning_rate", values=[2 * 1e-5, 2 * 1e-4, 2 * 1e-3, 2 * 1e-2, 2 * 1e-1]
+    )
 
     model = tf.keras.Sequential(
         [
@@ -205,11 +207,19 @@ model = tf.keras.Sequential(
 )
 
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=2*10e-6),
+    optimizer=tf.keras.optimizers.Adam(learning_rate=2 * 10e-6),
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 
+checkpoint_filepath = "/tmp/checkpoint"
+model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_filepath,
+    save_weights_only=True,
+    monitor="val_accuracy",
+    mode="max",
+    save_best_only=True,
+)
 
 model.fit(
     train_ds,
@@ -217,4 +227,9 @@ model.fit(
     validation_data=test_ds,
     epochs=15,
     class_weight=class_weight,
+    callbacks=[model_checkpoint_callback],
 )
+
+model.load_weights(checkpoint_filepath)
+
+model.evaluate(test_ds, batch_size=BATCHSIZE)
