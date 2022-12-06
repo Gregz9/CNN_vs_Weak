@@ -4,6 +4,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import regularizers
 import tensorflow_datasets as tfds
 import keras_tuner as kt
+
 filedir = os.path.dirname(__file__)
 from functools import partial
 
@@ -19,7 +20,7 @@ IMG_WIDTH = 227
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
     TRAINDIR,
-    validation_split=0.1, 
+    validation_split=0.1,
     subset="training",
     labels="inferred",
     seed=1337,
@@ -29,7 +30,7 @@ train_ds = tf.keras.utils.image_dataset_from_directory(
 )
 val_ds = tf.keras.utils.image_dataset_from_directory(
     TRAINDIR,
-    validation_split=0.1, 
+    validation_split=0.1,
     subset="validation",
     labels="inferred",
     seed=1337,
@@ -63,10 +64,14 @@ test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 def model_builder(hp):
     hp_lambda = hp.Choice("lambda", values=[0.0, 1e-5, 1e-4, 1e-3])
-    hp_learning_rate = hp.Choice("learning_rate", values=[1e-3, 1e-2, 1e-1])
-
-    kernel = tf.keras.regularizers.L2(l2=hp_lambda)
-    bias = tf.keras.regularizers.L2(l2=hp_lambda)
+    hp_scheduler = hp.Choice(
+        "scheduler",
+        values=[
+            tf.keras.optimizers.Adamax,
+            tf.keras.optimizers.Adam,
+            tf.keras.optimizers.SGD,
+        ],
+    )
 
     model = tf.keras.Sequential(
         [
@@ -116,22 +121,18 @@ def model_builder(hp):
             tf.keras.layers.Dense(
                 4096,
                 activation="relu",
-                kernel_regularizer=kernel,
-                bias_regularizer=bias,
             ),
             # tf.keras.layers.Dropout(0.2),
             tf.keras.layers.Dense(
                 4096,
                 activation="relu",
-                kernel_regularizer=kernel,
-                bias_regularizer=bias,
             ),
             tf.keras.layers.Dense(1),
         ]
     )
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adamax(learning_rate=hp_learning_rate),
+        optimizer=hp_scheduler(learning_rate=hp_learning_rate),
         loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
@@ -150,14 +151,11 @@ tuner = kt.Hyperband(
 tuner.search(train_ds, epochs=10, validation_data=val_ds, class_weight=class_weight)
 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 lam = best_hps.get("lambda")
-learning_rate = best_hps.get("learning_rate")
+scheduler = best_hps.get("scheduler")
 
 print(lam)
-print(learning_rate)
+print(scheduler)
 
-
-kernel = tf.keras.regularizers.L2(l2=lam)
-bias = tf.keras.regularizers.L2(l2=lam)
 
 model = tf.keras.Sequential(
     [
@@ -203,30 +201,23 @@ model = tf.keras.Sequential(
         ),
         tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
         tf.keras.layers.Flatten(),
-        # tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(
             4096,
             activation="relu",
-            kernel_regularizer=kernel,
-            bias_regularizer=bias,
         ),
-        # tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(
             4096,
             activation="relu",
-            kernel_regularizer=kernel,
-            bias_regularizer=bias,
         ),
         tf.keras.layers.Dense(1),
     ]
 )
 
 model.compile(
-    optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
+    optimizer=scheduler(learning_rate=learning_rate),
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
-
 
 
 model.fit(
