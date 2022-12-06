@@ -63,15 +63,7 @@ test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
 
 def model_builder(hp):
-    hp_lambda = hp.Choice("lambda", values=[0.0, 1e-5, 1e-4, 1e-3])
-    hp_scheduler = hp.Choice(
-        "scheduler",
-        values=[
-            tf.keras.optimizers.Adamax,
-            tf.keras.optimizers.Adam,
-            tf.keras.optimizers.SGD,
-        ],
-    )
+    hp_learning_rate = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3, 1e-2, 1e-1])
 
     model = tf.keras.Sequential(
         [
@@ -132,7 +124,7 @@ def model_builder(hp):
     )
 
     model.compile(
-        optimizer=hp_scheduler(learning_rate=hp_learning_rate),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=hp_learning_rate),
         loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
@@ -150,12 +142,9 @@ tuner = kt.Hyperband(
 
 tuner.search(train_ds, epochs=10, validation_data=val_ds, class_weight=class_weight)
 best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-lam = best_hps.get("lambda")
-scheduler = best_hps.get("scheduler")
+learning_rate = best_hps.get("learning_rate")
 
-print(lam)
-print(scheduler)
-
+print(learning_rate)
 
 model = tf.keras.Sequential(
     [
@@ -201,10 +190,12 @@ model = tf.keras.Sequential(
         ),
         tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
         tf.keras.layers.Flatten(),
+        # tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(
             4096,
             activation="relu",
         ),
+        # tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(
             4096,
             activation="relu",
@@ -214,7 +205,7 @@ model = tf.keras.Sequential(
 )
 
 model.compile(
-    optimizer=scheduler(learning_rate=learning_rate),
+    optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
