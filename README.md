@@ -11,10 +11,10 @@ We use Chest X-Ray images of from [Mendeley Data](https://data.mendeley.com/data
 ## Ting som må gjøres:
 
 ### MNIST
-- [x] CONV NN
-- [ ] Conv RF må gjøres og skrives
-- [ ] PCA RF må skrives mer på
-- [x] PCA NN
+- [x] CONV NN er bra
+- [ ] Conv RF kan kanskje skrives mer på
+- [x] PCA RF er decent
+- [x] PCA NN er decent
 
 ### PNEU
 - [x] CONV NN
