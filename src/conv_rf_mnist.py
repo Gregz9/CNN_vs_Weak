@@ -51,13 +51,26 @@ model.compile(
     metrics=["accuracy"],
 )
 
+checkpoint_filepath = "/tmp/checkpoint"
+model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_filepath,
+    save_weights_only=True,
+    monitor="val_accuracy",
+    mode="max",
+    save_best_only=True,
+)
 
 model.fit(
     train_ds,
     validation_data=test_ds,
     epochs=epochs,
     # batch_size=batch_size,
+    callbacks=[model_checkpoint_callback],
 )
+
+model.load_weights(checkpoint_filepath)
+
+model.evaluate(test_ds, batch_size=BATCHSIZE)
 
 feature_extractor = tf.keras.Model(
     inputs=model.inputs,
