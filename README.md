@@ -21,3 +21,14 @@ We use Chest X-Ray images of from [Mendeley Data](https://data.mendeley.com/data
 - [ ] Conv RF er gjort men dårlig og ikke skrevet
 - [ ] PCA RF er ikke gjort
 - [ ] PCA NN er gjort men må skrives
+
+### Rapport
+- [ ] Abstract
+- [x] Intro
+- [x] Theory
+- [x] Method
+- [ ] Results
+- [ ] Conclusion
+
+### Andre ting
+- [ ] Precision og recall
