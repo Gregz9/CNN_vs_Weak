@@ -101,13 +101,25 @@ model.compile(
     metrics=["accuracy"],
 )
 
+checkpoint_filepath = "/tmp/checkpoint"
+model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_filepath,
+    save_weights_only=True,
+    monitor="val_accuracy",
+    mode="max",
+    save_best_only=True,
+)
+
 model.fit(
     x_train,
     y_train,
     validation_data=(x_test, y_test),
     batch_size=batch_size,
     epochs=epochs,
+    callbacks=[model_checkpoint_callback],
 )
+
+model.load_weights(checkpoint_filepath)
 
 print(f"Time taken: {time.time() - start}")
 
