@@ -133,8 +133,8 @@ with tf.device("/cpu:0"):
     start = time.time()
     pca.fit(X_train)
 
-    X_train = pca.transform(X_train)
-    X_test = pca.transform(X_test)
+    X_train_pca = pca.transform(X_train)
+    X_test_pca = pca.transform(X_test)
 
 with tf.device("/gpu:0"):
     tuner = kt.Hyperband(
@@ -146,7 +146,7 @@ with tf.device("/gpu:0"):
     )
 
     tuner.search(
-        X_train, y_train, epochs=10, validation_split=0.2, class_weight=class_weight
+        X_train_pca, y_train, epochs=10, validation_split=0.2, class_weight=class_weight
     )
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
     lam = best_hps.get("lambda")
@@ -197,9 +197,9 @@ with tf.device("/gpu:0"):
     )
 
     model.fit(
-        X_train,
+        X_train_pca,
         y_train,
-        validation_data=(X_test, y_test),
+        validation_data=(X_test_pca, y_test),
         epochs=6,
         batch_size=64,
         class_weight=class_weight,
@@ -207,6 +207,16 @@ with tf.device("/gpu:0"):
     )
     model.load_weights(checkpoint_filepath)
 
-    model.evaluate(test_ds, batch_size=BATCHSIZE)
+    model.evaluate(X_test_pca, y_test, batch_size=BATCHSIZE)
+
+    X_train_pca_restored = pca.inverse_transform(X_test_pca)
+
+    plt.subplot(121)
+    plt.title("Actual instance 51k features", size=22)
+    plt.imshow(tf.reshape(X_train[0], (227, 227)))
+
+    plt.subplot(122)
+    plt.title("PCA with 9 components", size=22)
+    plt.imshow(tf.reshape(X_train_pca_restored[0], (227, 227)))
 
     print(f"Time taken: {time.time() - start}")
