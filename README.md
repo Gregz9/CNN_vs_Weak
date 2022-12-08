@@ -32,4 +32,5 @@ We use Chest X-Ray images of from [Mendeley Data](https://data.mendeley.com/data
 
 ### Andre ting
 - [ ] Precision og recall
-- [ ] Time calculation for each method
+- [x] Time calculation MNIST
+- [ ] Time calculation PNEU
