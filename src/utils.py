@@ -3,10 +3,10 @@ from tensorflow.keras import layers
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm 
+from matplotlib.colors import LogNorm
+from typing import Callable
+import time
 
-def PCA_stoch(X, n_components):
-    print("eric")
 
 def plot_confusion(confusion_matrix: np.ndarray, title=None):
     fontsize = 40
@@ -18,7 +18,6 @@ def plot_confusion(confusion_matrix: np.ndarray, title=None):
         fmt=".2%",
         cmap="Blues",
         norm=LogNorm(),
-
     )
     if title:
         plt.title(title)
@@ -30,98 +29,36 @@ def plot_confusion(confusion_matrix: np.ndarray, title=None):
     plt.show()
 
 
-def PCA_stoch(X, n_components, iterations=10, eta=1e-5, convergence=1e-5, epochs=10):
-    print(f"{X.shape=}")
-    m, n = X.shape
-    W_prev_epoch = np.eye(m, n_components)
+def timeit(func: Callable, *args, **kwargs):
+    """Function to time another function
 
-    for e in range(epochs):
-        print(e)
+    Parameters:
+        func: function to be timed
+        args: positional arguments for function
+        kwargs: keyword arguments for function
 
-        W_prev_iter = W_prev_epoch
-        u_mark = np.zeros((m, n_components))
-        for i in range(n):
-            u_mark += np.outer(X[:, i], (X[:, i].T @ W_prev_epoch)) / n
+    Returns:
+        average number of seconds taken for the function to run
+    """
+    n = 5
+    avg = 0
+    for i in range(n):
+        start = time.time()
+        func(*args)
+        avg += (time.time() - start) / n
 
-        for t in range(iterations):
-            print(t)
-            i = np.random.randint(n)
-
-            X_i = X[:, i].reshape(X[:, i].shape[0], 1)
-            W_mark = W_prev_iter + eta * (
-                X_i * (X_i.T @ W_prev_iter - X_i.T @ W_prev_epoch) + u_mark
-            )
-            W_prev_iter, _ = np.linalg.qr(W_mark)
-
-        W_prev_epoch = W_prev_iter
-
-    return W_prev_epoch
+    print(f"Average time taken for {n} calls: {avg}")
+    return avg
 
 
-def PCA_fit(X, n_components):
-    if X.shape[0] < n_components:
-        raise ValueError("n_components is higher than height of X")
-
-    means = tf.reduce_mean(X, axis=0)
-    stds = tf.math.reduce_std(X, axis=0)
-    stds = tf.where(tf.equal(stds, 0), tf.ones_like(stds), stds)
-    X = (X - means) / stds
-
-    _, _, W = tf.linalg.svd(X)
-
-    return W[:, :n_components]
-
-
-class PCALayer(layers.Layer):
-    def __init__(self, W):
-        super(PCALayer, self).__init__()
-        self.num_outputs = W.shape[1]
-        self.trainable = False
-        # self.W = W
-        self.W = tf.cast(W, dtype="float32")
-
-    def call(self, inputs):
-
-        return tf.matmul(inputs, self.W)
-
-
-def conf_mat(preds, labl, num_cls): 
+def conf_mat(preds, labl, num_cls):
     return tf.math.confusion_matrix(labels=labl, predictions=preds, num_classes=num_cls)
 
-def perc(matrix): 
-    conf = np.zeros(matrix.shape) 
 
-    for i in range(matrix.shape[0]): 
-        for j in range(matrix.shape[1]): 
+def perc(matrix):
+    conf = np.zeros(matrix.shape)
+
+    for i in range(matrix.shape[0]):
+        for j in range(matrix.shape[1]):
             conf[i][j] = matrix[i][j] / tf.reduce_sum(matrix[i], 0).numpy()
     return conf
-
-# PCA implemented using tensors, to be able to run on gpu
-
-# class PCA:
-#     def __init__(self, n_components):
-#         self.n_components = n_components
-#         self.W = None
-#
-#     def fit(self, X):
-#         if X.shape[0] < self.n_components:
-#             raise ValueError("n_components is higher than height of X")
-#
-#         means = tf.reduce_mean(X, axis=0)
-#         stds = tf.math.reduce_std(X, axis=0)
-#         stds = tf.where(tf.equal(stds, 0), tf.ones_like(stds), stds)
-#         X = (X - means) / stds
-#
-#         _, _, W = tf.linalg.svd(X)
-#
-#         self.W = W[:, : self.n_components]
-#
-#     def transform(self, X):
-#         if self.W is None:
-#             raise ValueError("Not fitted")
-#         return tf.linalg.matmul(X, self.W)
-#
-#     def inverse_transform(self, X):
-#         if self.W is None:
-#             raise ValueError("Not fitted")
-#         return tf.linalg.matmul(X, tf.transpose(self.W))

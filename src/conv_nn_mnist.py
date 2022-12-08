@@ -109,8 +109,10 @@ model.fit(
 # loading the best weights from the model
 model.load_weights(checkpoint_filepath)
 
+model.evaluate(x_test, y_test)
+
 print("Timing model:")
-timeit(model.evaluate, x_test, y_test)
+timeit(model.predict, (x_test, y_test), batch_size=batch_size)
 
 predictions = tf.math.argmax(model.predict(x_test), axis=1)
 conf = conf_mat(predictions, y_test, num_cls=10)
