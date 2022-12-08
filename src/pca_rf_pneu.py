@@ -62,7 +62,7 @@ def model_builder(hp):
 with tf.device("/cpu:0"):
     TRAINDIR = filedir + "/../data/chest_xray/train"
     TESTDIR = filedir + "/../data/chest_xray/test"
-    BATCHSIZE = 128
+    batch_size = 128
     IMG_HEIGHT = 200
     IMG_WIDTH = 200
 
@@ -71,7 +71,7 @@ with tf.device("/cpu:0"):
         labels="inferred",
         seed=1337,
         image_size=(IMG_HEIGHT, IMG_WIDTH),
-        batch_size=BATCHSIZE,
+        batch_size=batch_size,
         color_mode="grayscale",
     )
 
@@ -80,7 +80,7 @@ with tf.device("/cpu:0"):
         labels="inferred",
         seed=1337,
         image_size=(IMG_HEIGHT, IMG_WIDTH),
-        batch_size=BATCHSIZE,
+        batch_size=batch_size,
         color_mode="grayscale",
     )
 
@@ -134,15 +134,24 @@ with tf.device("/cpu:0"):
     start = time.time()
     pca.fit(X_train)
 
-    X_train = pca.transform(X_train)
-    X_test = pca.transform(X_test)
+    X_train_pca = pca.transform(X_train)
+    X_test_pca = pca.transform(X_test)
 
     forest = tfdf.keras.RandomForestModel(
         verbose=1, max_depth=40, random_seed=1337, check_dataset=False
     )
-    forest.fit(X_train, y_train, class_weight=class_weight)
+    forest.fit(X_train_pca, y_train, class_weight=class_weight)
 
     forest.compile(metrics=["accuracy"])
 
-    print(forest.evaluate(X_train, y_train, return_dict=True))
-    print(forest.evaluate(X_test, y_test, return_dict=True))
+    print(forest.evaluate(X_train_pca, y_train, return_dict=True))
+    print(forest.evaluate(X_test_pca, y_test, return_dict=True))
+
+    def predict():
+        X_test_pca = pca.transform(X_test)
+        test_ds = tf.data.Dataset.from_tensor_slices((X_test_pca, y_test))
+        test_ds = test_ds.batch(batch_size)
+        forest.predict(test_ds)
+
+    print("Timing prediction")
+    timeit(predict)

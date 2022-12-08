@@ -55,7 +55,9 @@ print(forest.evaluate(test_ds, return_dict=True))
 
 def predict():
     x_test_pca = pca.transform(x_test_flat)
-    forest.predict((x_test_pca, y_test))
+    test_ds = tf.data.Dataset.from_tensor_slices((x_test_pca, y_test))
+    test_ds = test_ds.batch(batch_size)
+    forest.predict(test_ds)
 
 
 print("Timing prediction")
