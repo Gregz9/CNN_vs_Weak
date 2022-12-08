@@ -62,14 +62,16 @@ tuner = kt.Hyperband(
     directory="pca_nn_mnist-parameters",
 )
 
-tuner.search(x_train_pca, y_train, epochs=10, validation_split=0.2)
-best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-units = best_hps.get("units")
-learning_rate = best_hps.get("learning_rate")
+# tuner.search(x_train_pca, y_train, epochs=10, validation_split=0.2)
+# best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+# units = best_hps.get("units")
+# learning_rate = best_hps.get("learning_rate")
 
-print(units)
-print(learning_rate)
+# print(units)
+# print(learning_rate)
 
+units = 100
+learning_rate = 0.001
 
 start = time.time()
 pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
@@ -118,9 +120,9 @@ print(results)
 print(results["accuracy"])
 
 
-def predit():
+def predict():
     x_test_pca = pca.transform(x_test_flat)
-    model.predict(x_test_pca, y_test)
+    model.predict((x_test_pca, y_test))
 
 
 print("Timing prediction")

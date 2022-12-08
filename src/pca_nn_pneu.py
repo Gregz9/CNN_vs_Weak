@@ -212,36 +212,40 @@ with tf.device("/gpu:0"):
         y_train,
         validation_data=(X_test_pca, y_test),
         epochs=15,
-        batch_size=BATCHSIZE, #64,
+        batch_size=BATCHSIZE,  # 64,
         class_weight=class_weight,
         callbacks=[model_checkpoint_callback],
     )
     model.load_weights(checkpoint_filepath)
 
     model.evaluate(X_test_pca, y_test, batch_size=BATCHSIZE)
-    print(f"Time taken: {time.time() - start}")
+
+    def predict():
+        x_test_pca = pca.transform(X_test)
+        model.predict((x_test_pca, y_test))
+
+    print("Timing prediction")
+    timeit(predict)
 
     X_train_pca_restored = pca.inverse_transform(X_test_pca)
 
     plt.subplot(321)
-    plt.title(f"Actual instance 51k features. Class {y_train[0]}", size=18)
+    plt.title(f"Actual instance, 51k features. Class {y_train[0]}", size=18)
     plt.imshow(tf.reshape(X_train[0], (227, 227)))
     plt.subplot(322)
     plt.title("PCA with 9 components", size=18)
     plt.imshow(tf.reshape(X_train_pca_restored[0], (227, 227)))
 
     plt.subplot(323)
-    plt.title(f"Actual instance 51k features. Class {y_train[5]}", size=18)
+    plt.title(f"Class {y_train[5]}", size=18)
     plt.imshow(tf.reshape(X_train[5], (227, 227)))
     plt.subplot(324)
-    plt.title("PCA with 9 components", size=18)
     plt.imshow(tf.reshape(X_train_pca_restored[5], (227, 227)))
 
     plt.subplot(325)
-    plt.title(f"Actual instance 51k features. Class {y_train[8]}", size=18)
+    plt.title(f"Class {y_train[8]}", size=18)
     plt.imshow(tf.reshape(X_train[8], (227, 227)))
     plt.subplot(326)
-    plt.title("PCA with 9 components", size=18)
     plt.imshow(tf.reshape(X_train_pca_restored[8], (227, 227)))
 
     plt.show()
