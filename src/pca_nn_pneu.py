@@ -63,8 +63,8 @@ with tf.device("/cpu:0"):
     TRAINDIR = filedir + "/../data/chest_xray/train"
     TESTDIR = filedir + "/../data/chest_xray/test"
     BATCHSIZE = 128
-    IMG_HEIGHT = 200
-    IMG_WIDTH = 200
+    IMG_HEIGHT = 227
+    IMG_WIDTH = 227
 
     train_ds = tf.keras.utils.image_dataset_from_directory(
         TRAINDIR,
@@ -203,7 +203,7 @@ with tf.device("/gpu:0"):
         X_train_pca,
         y_train,
         validation_data=(X_test_pca, y_test),
-        epochs=6,
+        epochs=15,
         batch_size=64,
         class_weight=class_weight,
         callbacks=[model_checkpoint_callback],
