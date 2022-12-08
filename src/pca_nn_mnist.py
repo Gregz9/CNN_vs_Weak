@@ -116,3 +116,12 @@ plot_confusion(conf, title="Confusion matrix - PCA_NN - MNIST")
 print(results)
 
 print(results["accuracy"])
+
+
+def predit():
+    x_test_pca = pca.transform(x_test_flat)
+    model.predict(x_test_pca, y_test)
+
+
+print("Timing prediction")
+timeit(predict)
