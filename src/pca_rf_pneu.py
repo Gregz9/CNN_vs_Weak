@@ -9,7 +9,7 @@ import time
 import matplotlib.pyplot as plt
 from utils import *
 from sklearn.decomposition import PCA
-import tensorboard_decision_forests as tfdf
+import tensorflow_decision_forests as tfdf
 
 filedir = os.path.dirname(__file__)
 
@@ -104,7 +104,7 @@ with tf.device("/cpu:0"):
     y_train = None
     y_test = None
 
-    n_components = 20
+    n_components = 9
 
     for batch, labels in train_ds:
         if X_train is None:
@@ -138,9 +138,9 @@ with tf.device("/cpu:0"):
     X_test = pca.transform(X_test)
 
     forest = tfdf.keras.RandomForestModel(
-        verbose=1, max_depth=16, random_seed=1337, check_dataset=False
+        verbose=1, max_depth=40, random_seed=1337, check_dataset=False
     )
-    forest.fit(X_train, y_train)
+    forest.fit(X_train, y_train, class_weight=class_weight)
 
     forest.compile(metrics=["accuracy"])
 
