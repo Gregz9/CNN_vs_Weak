@@ -187,6 +187,15 @@ with tf.device("/gpu:0"):
         metrics=["accuracy"],
     )
 
+    checkpoint_filepath = "/tmp/checkpoint"
+    model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+        filepath=checkpoint_filepath,
+        save_weights_only=True,
+        monitor="val_accuracy",
+        mode="max",
+        save_best_only=True,
+    )
+
     model.fit(
         X_train,
         y_train,
@@ -194,32 +203,10 @@ with tf.device("/gpu:0"):
         epochs=6,
         batch_size=64,
         class_weight=class_weight,
+        callbacks=[model_checkpoint_callback],
     )
+    model.load_weights(checkpoint_filepath)
+
+    model.evaluate(test_ds, batch_size=BATCHSIZE)
+
     print(f"Time taken: {time.time() - start}")
-
-# ------- plotting pca ------------
-# x_train_remade = pca.inverse_transform(x_train_pca)
-
-# plt.subplot(421)
-# plt.title("Actual instance, \n 784 features")
-# plt.imshow(x_train[0])
-# plt.subplot(422)
-# plt.title(f"Constructed using only the \n {n_components} first principal components")
-# plt.imshow(tf.reshape(x_train_remade[0], (28, 28)))
-#
-# plt.subplot(423)
-# plt.imshow(x_train[1])
-# plt.subplot(424)
-# plt.imshow(tf.reshape(x_train_remade[1], (28, 28)))
-#
-# plt.subplot(425)
-# plt.imshow(x_train[2])
-# plt.subplot(426)
-# plt.imshow(tf.reshape(x_train_remade[2], (28, 28)))
-#
-# plt.subplot(427)
-# plt.imshow(x_train[3])
-# plt.subplot(428)
-# plt.imshow(tf.reshape(x_train_remade[3], (28, 28)))
-#
-# plt.show()
