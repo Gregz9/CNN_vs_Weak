@@ -108,23 +108,23 @@ with tf.device("/cpu:0"):
 
     for batch, labels in train_ds:
         if X_train is None:
-            X_train = tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0
+            X_train = tf.reshape(batch, shape=[-1, IMG_WIDTH * IMG_HEIGHT]) / 255.0
             y_train = labels
 
         else:
             X_train = tf.concat(
-                [X_train, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0
+                [X_train, (tf.reshape(batch, shape=[-1, IMG_HEIGHT * IMG_WIDTH]) / 255.0)], axis=0
             )
             y_train = tf.concat([y_train, labels], axis=0)
 
     for batch, labels in test_ds:
         if X_test is None:
-            X_test = tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0
+            X_test = tf.reshape(batch, shape=[-1, IMG_HEIGHT * IMG_WIDTH]) / 255.0
             y_test = labels
 
         else:
             X_test = tf.concat(
-                [X_test, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0
+                [X_test, (tf.reshape(batch, shape=[-1, IMG_HEIGHT * IMG_WIDTH]) / 255.0)], axis=0
             )
             y_test = tf.concat([y_test, labels], axis=0)
 
@@ -221,5 +221,6 @@ with tf.device("/gpu:0"):
     plt.subplot(122)
     plt.title("PCA with 9 components", size=22)
     plt.imshow(tf.reshape(X_train_pca_restored[0], (227, 227)))
+    plt.show()
 
     print(f"Time taken: {time.time() - start}")
