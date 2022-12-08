@@ -30,6 +30,7 @@ test_ds = tf.data.Dataset.from_tensor_slices((x_test, y_test))
 train_ds = train_ds.batch(batch_size)
 test_ds = test_ds.batch(batch_size)
 
+# these were found from conv_nn_mnist.py
 width = 5
 learning_rate = 0.001
 
@@ -74,7 +75,7 @@ model.evaluate(test_ds, batch_size=BATCHSIZE)
 
 feature_extractor = tf.keras.Model(
     inputs=model.inputs,
-    outputs=model.layers[-3].output,
+    outputs=model.layers[-2].output,
 )
 
 features_train = train_ds.map(lambda batch, label: (feature_extractor(batch), label))
@@ -92,3 +93,14 @@ forest.compile(metrics=["accuracy"])
 
 print(forest.evaluate(features_train, return_dict=True))
 print(forest.evaluate(features_test, return_dict=True))
+
+# timing:
+
+
+def predict():
+    features_test = test_ds.map(lambda batch, label: (feature_extractor(batch), label))
+    forest.predict(features_test)
+
+
+print("Timing prediction")
+timeit(predict)
