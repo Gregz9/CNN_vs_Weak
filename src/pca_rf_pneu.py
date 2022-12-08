@@ -9,6 +9,7 @@ import time
 import matplotlib.pyplot as plt
 from utils import *
 from sklearn.decomposition import PCA
+import tensorboard_decision_forests as tfdf
 
 filedir = os.path.dirname(__file__)
 
@@ -133,8 +134,8 @@ with tf.device("/cpu:0"):
     start = time.time()
     pca.fit(X_train)
 
-    pca.transform(X_train)
-    pca.transform(X_test)
+    X_train = pca.transform(X_train)
+    X_test = pca.transform(X_test)
 
     forest = tfdf.keras.RandomForestModel(
         verbose=1, max_depth=16, random_seed=1337, check_dataset=False

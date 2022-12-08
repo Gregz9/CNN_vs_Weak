@@ -133,8 +133,8 @@ with tf.device("/cpu:0"):
     start = time.time()
     pca.fit(X_train)
 
-    pca.transform(X_train)
-    pca.transform(X_test)
+    X_train = pca.transform(X_train)
+    X_test = pca.transform(X_test)
 
 with tf.device("/gpu:0"):
     tuner = kt.Hyperband(
