@@ -149,13 +149,13 @@ with tf.device("/gpu:0"):
     tuner = kt.Hyperband(
         model_builder,
         objective="val_accuracy",
-        max_epochs=10,
+        max_epochs=20,
         factor=3,
         directory="pca_nn_pneu-params",
     )
 
     tuner.search(
-        X_train_pca, y_train, epochs=10, validation_split=0.2, class_weight=class_weight
+        X_train_pca, y_train, epochs=20, validation_split=0.2, class_weight=class_weight
     )
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
     lam = best_hps.get("lambda")
@@ -212,7 +212,7 @@ with tf.device("/gpu:0"):
         y_train,
         validation_data=(X_test_pca, y_test),
         epochs=15,
-        batch_size=64,
+        batch_size=BATCHSIZE, #64,
         class_weight=class_weight,
         callbacks=[model_checkpoint_callback],
     )
@@ -223,25 +223,25 @@ with tf.device("/gpu:0"):
 
     X_train_pca_restored = pca.inverse_transform(X_test_pca)
 
-    plt.subplot(421)
-    plt.title(f"Actual instance 51k features. Class {Y_train[0]}", size=18)
+    plt.subplot(321)
+    plt.title(f"Actual instance 51k features. Class {y_train[0]}", size=18)
     plt.imshow(tf.reshape(X_train[0], (227, 227)))
-    plt.subplot(422)
+    plt.subplot(322)
     plt.title("PCA with 9 components", size=18)
     plt.imshow(tf.reshape(X_train_pca_restored[0], (227, 227)))
 
-    plt.subplot(421)
-    plt.title(f"Actual instance 51k features. Class {Y_train[1]}", size=18)
-    plt.imshow(tf.reshape(X_train[1], (227, 227)))
-    plt.subplot(422)
+    plt.subplot(323)
+    plt.title(f"Actual instance 51k features. Class {y_train[5]}", size=18)
+    plt.imshow(tf.reshape(X_train[5], (227, 227)))
+    plt.subplot(324)
     plt.title("PCA with 9 components", size=18)
-    plt.imshow(tf.reshape(X_train_pca_restored[1], (227, 227)))
+    plt.imshow(tf.reshape(X_train_pca_restored[5], (227, 227)))
 
-    plt.subplot(421)
-    plt.title(f"Actual instance 51k features. Class {Y_train[2]}", size=18)
-    plt.imshow(tf.reshape(X_train[2], (227, 227)))
-    plt.subplot(422)
+    plt.subplot(325)
+    plt.title(f"Actual instance 51k features. Class {y_train[8]}", size=18)
+    plt.imshow(tf.reshape(X_train[8], (227, 227)))
+    plt.subplot(326)
     plt.title("PCA with 9 components", size=18)
-    plt.imshow(tf.reshape(X_train_pca_restored[2], (227, 227)))
+    plt.imshow(tf.reshape(X_train_pca_restored[8], (227, 227)))
 
     plt.show()
