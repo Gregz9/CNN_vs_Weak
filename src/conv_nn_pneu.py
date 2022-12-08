@@ -225,7 +225,7 @@ model.fit(
     train_ds,
     batch_size=BATCHSIZE,
     validation_data=test_ds,
-    epochs=2,
+    epochs=15,
     class_weight=class_weight,
     callbacks=[model_checkpoint_callback],
 )
