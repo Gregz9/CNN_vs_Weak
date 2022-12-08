@@ -27,7 +27,8 @@ We use Chest X-Ray images of from [Mendeley Data](https://data.mendeley.com/data
 - [x] Intro
 - [x] Theory
 - [x] Method
-- [ ] Results
+- [ ] Results MNIST
+- [ ] Results PNEU
 - [ ] Conclusion
 
 ### Andre ting
