@@ -12,15 +12,15 @@ We use Chest X-Ray images of from [Mendeley Data](https://data.mendeley.com/data
 
 ### MNIST
 - [x] CONV NN er bra
-- [ ] Conv RF kan kanskje skrives mer på
-- [x] PCA RF er decent
+- [x] Conv RF kan kanskje skrives mer på
 - [x] PCA NN er decent
+- [x] PCA RF er decent
 
 ### PNEU
 - [x] CONV NN
-- [ ] Conv RF er gjort men dårlig og ikke skrevet
-- [ ] PCA RF er ikke gjort
-- [ ] PCA NN er gjort men må skrives
+- [x] Conv RF er gjort men dårlig
+- [x] PCA NN er gjort og bra!!!
+- [x] PCA RF er gjort og bra!!!
 
 ### Rapport
 - [ ] Abstract
