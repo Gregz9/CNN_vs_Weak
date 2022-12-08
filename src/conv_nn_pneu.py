@@ -247,7 +247,7 @@ for _, labels in test_ds:
         y_test = tf.concat([y_test, labels], axis=0)
 
 pred = model.predict(test_ds)
-pred = tf.where(pred > 0.5, 1, 0)
+pred = tf.where(pred > 0, 1, 0)
 pred = tf.squeeze(pred)
 conf = conf_mat(pred, y_test, 2)
 conf = perc(conf)
