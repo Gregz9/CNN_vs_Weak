@@ -32,4 +32,4 @@ We use Chest X-Ray images of from [Mendeley Data](https://data.mendeley.com/data
 
 ### Andre ting
 - [ ] Precision og recall
-- [ ] Data augmentation
+- [ ] Time calculation for each method
