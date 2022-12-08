@@ -255,3 +255,12 @@ forest.compile(metrics=["accuracy"])
 
 print(forest.evaluate(features_train, return_dict=True))
 print(forest.evaluate(features_test, return_dict=True))
+
+
+def predict():
+    features_test = test_ds.map(lambda batch, label: (feature_extractor(batch), label))
+    forest.predict(features_test)
+
+
+print("Timing prediction")
+timeit(predict)
