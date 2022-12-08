@@ -17,6 +17,7 @@ tf.keras.utils.set_random_seed(1336)
 PCA neural network used for pneumonia dataset. Builds and fits data, takes time.
 """
 
+
 def model_builder(hp):
     hp_lambda = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3])
     hp_learning_rate = hp.Choice("learning_rate", values=[1e-3, 1e-2, 1e-1])
@@ -56,6 +57,7 @@ def model_builder(hp):
 
     return model
 
+
 with tf.device("/cpu:0"):
     TRAINDIR = filedir + "/../data/chest_xray/train"
     TESTDIR = filedir + "/../data/chest_xray/test"
@@ -94,9 +96,6 @@ with tf.device("/cpu:0"):
     train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
     test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
-
-
-# grab a subset for PCA calculation
     x_list = []
     i = 0
     X_train = None
@@ -128,7 +127,6 @@ with tf.device("/cpu:0"):
             )
             y_test = tf.concat([y_test, labels], axis=0)
 
-
     pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
 
     print("Fitting PCA")
@@ -138,7 +136,7 @@ with tf.device("/cpu:0"):
     pca.transform(X_train)
     pca.transform(X_test)
 
-with tf.device('/gpu:0'):
+with tf.device("/gpu:0"):
     tuner = kt.Hyperband(
         model_builder,
         objective="val_accuracy",
@@ -186,7 +184,7 @@ with tf.device('/gpu:0'):
     model.compile(
         optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
         loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-        metrics=["accuracy", "precision", "recall"],
+        metrics=["accuracy"],
     )
 
     model.fit(
