@@ -70,7 +70,8 @@
 
 \section{Abstract}
 
-We found a dog driving a car down Hollywood Boulevard. It had sunglasses on, but didn't know where to go due to demensionality reduction. It was computing many computinations but due to severe liminations it had problems with binaly classifination and a large emesee.
+% We found a dog driving a car down Hollywood Boulevard. It had sunglasses on, but didn't know where to go due to demensionality reduction. It was computing many computinations but due to severe liminations it had problems with binaly classifination and a large emesee.
+Kurwa.
 
 \section{Introduction}
 
@@ -99,7 +100,7 @@ This sections covers the theoretic background which underlies the methods used i
 
 Convolutional Neural Networks are neural networks which are specialized to work on images, or other types of data where the structure of the data carries meaning. A normal neural network treats each input independently, and inputs are flattened such that any spatial information is lost. CNNs, on the other hand, explicitly take the spatial dimensions into account, by using convolutional kernels and pooling layers as part of their architecture.
 
-The eponymous operation of convolution is a method which is used much in image processing. It is performed by using a convolutional kernel, which is applied to each pixel of the image. The kernel is a matrix of values, and the output of a particular pixel is the sum of all the pixels in its neighbourhood multiplied by the overlapping value in the kernel. As such, the value in any one position is dependent on the kernel, but also on the pixels around this position. This allows us to extract valuable information about images, such as edges or patterns. A basic kernel could be the Laplacian kernel (Eq.~\ref{laplace}), which will output a high value when the pixel in the middle of the kernel has a value which differs greatly from the pixels in a 3 by 3 neighbourhood around it.
+The eponymous operation of convolution is a method which is often used in image processing. It is performed by using a convolutional kernel, which is applied to each pixel of the image. The kernel is a matrix of values, and the output of a particular pixel is the sum of all the pixels in its neighbourhood multiplied by the overlapping value in the kernel. As such, the value in any one position is dependent on the kernel, but also on the pixels around this position. This allows us to extract valuable information about images, such as edges or patterns. A basic kernel could be the Laplacian kernel (Eq.~\ref{laplace}), which will output a high value when the pixel in the middle of the kernel has a value which differs greatly from the pixels in a 3 by 3 neighbourhood around it. As such, this kernel can be used to detect edges, as edges imply large local changes in pixel intensity. The effect of this kernel can be seen in figure ~\ref{millie}.
 
 \begin{equation}
 \label{laplace}
@@ -111,10 +112,16 @@ laplace :
 \end{bmatrix}
 \end{equation}
 
+\begin{figure}[H]
+\centerline{\includegraphics[width=8in]{figure/millie.png}}
+\caption{The result of applying the kernel in Eq.~\ref{laplace} to an image. Here we can see that areas of relatively constant intensity disappear (the floor, the back part of the box), while sharp edges elicit a response (the transition between carpet and floor, the holes in the box). However, a lot of noise is also present. This can be solved with more sophisticated methods of edge detection, such as Canny's algorithm.}
+\label{millie}
+\end{figure}
+
 The mathematical equation for the convolution of a kernel $w$ on an image $f(x,y)$ (represented as a discrete function in two variables) is as follows:
 
 \begin{equation}
-w \star f(x,y) = \sum^a_{s=-a} \sum^b_{t=-b}f(x+s, y+t)\footnote{In reality, we should have $x-s$ and $y-t$, as correlation involves rotating the kernel by 180 degrees. However, the term convolution is often used for both the mathematical operations of correlation and convolution\cite[160]{dip}}
+w \star f(x,y) = \sum^a_{s=-a} \sum^b_{t=-b}f(x+s, y+t)\footnote{In reality, we should have $x-s$ and $y-t$, as correlation involves rotating the kernel by 180 degrees. However, the term convolution is often used for both the mathematical operations of correlation and convolution\cite[160]{dip}. Furthermore, the kernels used in CNNs have randomly initialized weights, making rotation inconsequential.}
 \end{equation}
 
 In a convolutional neural network, the values of each kernel is initialized randomly, and training involves tuning these values. When performing convolution at the edges of an image, some values in the image will be undefined (i.e, some values of the kernel will not overlap with the image). To solve this problem, we can either ignore any positions where the kernel is not fully contained within the image, or introduce padding, where we pad the image with values (usually just zeroes) so that more of the image can be convolved. By choosing the amount of padding, we can decide how close the dimensions of the result of our convolution are to the original dimensions. Another parameter which has an effect on the output dimensions is the {\it stride} parameter, which decides the size of the step between each convolution operation. By having a stride higher than one, we are no longer evaluating at every position. This reduces the computational complexity at the cost of not extracting our features as finely \cite[343]{gbc}. This will also downsample the result of our convolution to a smaller dimension than the input.
@@ -198,7 +205,7 @@ As is well known, convolutional neural networks perform excellent on the MNIST d
 
 \subsubsection{Convolution followed by a Random Forest}
 
-Given that we have achieved excellent results by using a CNN, we may don't expect to achieve much better results by sending the extracted features to a random forest. Regardless, our testing found that by using the same CNN model we found previously, 
+Given that we have achieved excellent results by using a CNN, we may don't expect to achieve much better results by sending the extracted features to a random forest. Regardless, we found that by using the same CNN model we found previously, and sending the extracted features into a random forest model, we achieved a testing accuracy of $97.8\%$. This is lower than what we have achieved by simply using the features in a final dense layer, and is a somewhat disappointing result.
 
 \subsubsection{Principal Component Analysis followed by a Neural Network}
 
@@ -210,7 +217,7 @@ Replacing the convolutional stage with a simpler form of dimensionality reductio
 \label{pcacomp}
 \end{figure}
 
-Using different amount of principal components, we sent the reduced dataset into a neural network with three hidden layers. After testing different amounts of principal components to keep, and tuning the hyperparameters based on these, we found that even with only $50$ principal components, we achieved a test accuracy of $97.8\%$. This is comparable to the accuracy obtained by a traditional convolutional neural network. When considering the computational effort, we need to consider the performance benefit that modern GPU's bring, being specifically designed to run neural networks efficiently. This is very apparent in our testing: When using only a CPU, the PCA-NN model was much less intensive, requiring only $17$ seconds to complete training, while the convolutional neural network used $164$ seconds. This tells us that when computational resources are limited, simpler architectures can give reasonable results in a fraction of the time. However, when using a GPU with CUDA cores, the story is quite different: Here, the CNN used only $6$ seconds, while the PCA-NN model took $12$ seconds\footnote{The fact that this model took longer than the CNN is most likely because the PCA function we use only runs on the CPU, meaning that only the neural net part is actually running on the GPU}. Looking at the confusion matrix (Fig.~\ref{mnistheatmap_pcann}), we can see that we are again achieving very few misclassifications using the PCA-NN model.
+Using different amount of principal components, we sent the reduced dataset into a neural network with three hidden layers. After testing different amounts of principal components to keep, and tuning the hyperparameters based on these, we found that even with only $50$ principal components, we achieved a test accuracy of $97.8\%$. This is comparable to the accuracy obtained by a traditional convolutional neural network. When considering the computational effort, we need to consider the performance benefit that modern GPU's bring, being specifically designed to run neural networks efficiently. This is very apparent in our testing: When using only a CPU, the PCA-NN model was much less intensive, requiring only $17$ seconds to complete training, while the convolutional neural network used $164$ seconds. This tells us that when computational resources are limited, simpler architectures can give reasonable results in a fraction of the time\footnote{Of course, you would ideally train your network on better hardware, even if the hardware making the prediction does not have a GPU. However, the same ratio holds when making a single prediction as opposed to training the entire model. That is, the PCA-NN model is much faster at making a single prediction than the CNN model}. However, when using a GPU with CUDA cores, the story is quite different: Here, the CNN used only $6$ seconds, while the PCA-NN model took $12$ seconds\footnote{The fact that this model took longer than the CNN is most likely because the PCA function we use only runs on the CPU, meaning that only the neural net part is actually running on the GPU}. Looking at the confusion matrix (Fig.~\ref{mnistheatmap_pcann}), we can see that we are again achieving very few misclassifications using the PCA-NN model.
 
 \begin{figure}[H]
 \centerline{\includegraphics[width=8in]{figure/conf_pca_nn_MNIST.png}}
@@ -221,7 +228,7 @@ Using different amount of principal components, we sent the reduced dataset into
 
 \subsubsection{Principal Component Analysis followed by a Random Forest}
 
-Satisfied with the results achieved by replacing the convolutional stage with Principal Component Analysis, we attempt to sidestep neural networks all together, and use PCA followed by a random forest. Here, we achieved a reasonable result of $94.7\%$ accuracy on the test set. Although this is not as impressive as the previous models, there
+Satisfied with the results achieved by replacing the convolutional stage with Principal Component Analysis, we attempt to sidestep neural networks all together, and use PCA followed by a random forest. Here, we achieved a reasonable result of $94.7\%$ accuracy on the test set. Although this is not as impressive as the previous models, it shows that decent results can be achieved without using neural networks at all. However, we clearly see that traditional CNNs have performances which are hard to beat using other forms of dimensionality reduction.
 
 \subsection{Guangzhou Pneumonia Data}
 
@@ -229,36 +236,49 @@ As previously stated, the Guangzhou Pneumonia Dataset was collected and labeled 
 
 \subsubsection{Traditional Convolutional Neural Network}
 
-Determining whether an x-ray shows a case of pneumonia or not is clearly a much more difficult classification problem than our previous dataset. Therefore, we initially had problems designing an architecture which achieved much higher than $80\%$ test accuracy. Clearly, we are not able to use a simple one convolutional layer model like we were able to on the MNIST dataset, and designing a general convolutional neural network architecture is a very complex task. Thus, we turn to the literature, and explore models which have been proven to be effective at image recognition. Out of the architectures presented in BOOK \cite{geron}, we decided to try AlexNet, which won the ILSVRC 2012 challenge and is a relatively shallow network having $11$ hidden layers. Using this model, we achieved a testing accuracy of $87.8\%$. Comparing our result to those obtained by Kermany et Al., we see that our model is slightly more ass.
+Determining whether an x-ray shows a case of pneumonia or not is clearly a much more difficult classification problem than our previous dataset. Therefore, we initially had problems designing an architecture which achieved much higher than $80\%$ test accuracy. Clearly, we are not able to use a simple one convolutional layer model like we were able to on the MNIST dataset, and designing a general convolutional neural network architecture is a very complex task. Thus, we turn to the literature, and explore models which have been proven to be effective at image recognition. Out of the architectures presented in BOOK \cite{geron}, we decided to try AlexNet, which won the ILSVRC 2012 challenge and is a relatively shallow network having $11$ hidden layers. Using this model, and using the GregSearch algorithm\footnote{This algorithm involves Greg trying out different values until he finds a very good one} we achieved a testing accuracy of $88.9\%$. Comparing our result to those obtained by Kermany et Al. ($92.8\%$), we see that our model is a few percentage points worse, however when considering that we are not using transfer learning and are completing training on a single laptop, we consider our results to be reasonably good.
 
 \subsubsection{Convolution followed by a Random Forest}
 
+As with the MNIST dataset, we also found disappointing results when attempting to use a CNN-RF model on this dataset. Here, we achieved a test accuracy of $87.5\%$, which is $1.4\%$ lower than simply using the CNN as is to make the prediction. 
+
+
 \subsubsection{Principal Component Analysis followed by a Neural Network}
+
+% Given the complexity of the network needed to achieve good results when using a CNN, we do not expect much when combining PCA, which is a much less sophisticated form of feature extraction than convolutional layers in a CNN, with a traditional neural network. Regardless, using a PCA-NN model, we extracted a varying amount of principal components and used these as features in a neural network composed of three dense layers. Using hyperparameter tuning, we found that a number of nodes in each layer equal to $1000$, a lambda of $0.001$ and a learning rate of $0.001$ gave the best result. However, even when using the best hyperparameters, we only achieved a test accuracy of $80.0\%$, which is substantially lower than Kermany et Al's $92.8\%$ and our own CNN model's $88.9\%$. This result shows why convolutional layers have become the de facto standard for image recognition, being able to extract features with much higher precision than simply calculating the principal components of a dataset. By the use of gradient descent, CNNs are able to tune the convolutional kernels to have the values which best fit the dataset, and as such they are able to be trained to solve many different problems. PCA, on the other hand, cannot be tuned or trained to better extract the relevant features, the only parameter than be changed is the amount of principal components to keep. With these poor results, no justification based on computational savings can be made, especially when CNNs can be trained extremely quickly on modern GPUs.
+
+
+Given the complexity of the network needed to achieve good results when using a CNN, one might not expect to find good results using PCA, which is a much more simplistic form of feature extraction. However, we have found that we can actually achieve very comparable results to AlexNet using a much simpler model. In our PCA-NN model, we tried different number of principal components to keep, and sent these components into a neural network with three hidden layers. Tuning the model, we found that optimal hyperparameters were as described by table~.\ref{pcanntable}. Using these parameters, we were able to achieve a test accuracy of $87.3\%$. This is an impressive accuracy considering the simplicity of our model, and shows that it is possible to achieve reasonable results without turning to complex convolutional neural networks. Looking at figure~.\ref{pneupcacomp}, we can see how much information is left when using only $9$ principal components. From this we can see that while much detail has been lost, something something
+
+\begin{table}[H]
+\caption{Optimal hyperparameters for the PCA-NN model}
+\begin{center}
+\label{pcanntable}
+\begin{tabular}{| c | l |}
+\hline
+Principal Components & Nodes per hidden layer & Learning Rate & Lambda \\
+\hline
+9 & 17 & 0.001 & 0.001 \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 \subsubsection{Principal Component Analysis followed by a Random Forest}
 
+Yet again impressed with the performance of using a simpler model, we attempt to perform the same classification without using neural networks at all. Using a PCA-RF model, we achieved a test accuracy of $83.7\%$. NEED TIME STATS FOR THE REST
+
+
+$87.3\%$ for PCA NN med 17
+$83.7\%$ for PCA RF med 17
+
+
+
+
+
 \section{Conclusion}
 
-% \begin{table}[h]
-% \caption{Accuracy by }
-% \begin{center}
-% \label{datasettable}
-% \begin{tabular}{| c | l | l | l |}
-% \hline
-% Dataset & Number of instances & Features & Type \\
-% \hline
-% Franke Function (raw data) & 400 & 2 & regression \\
-% Franke Function (polynomial features) & 400 & 56 & regression \\
-% Wisconsin Breast Cancer & 569 & 30 & binary classification \\
-% MNIST 8x8 & 1797 & 64 & multiclass classification (10 classes) \\
-% \hline
-% \end{tabular}
-% \end{center}
-% \end{table}
-
-I have realized that I am cooler than Eric.
-
-The children of Guangzhou province were saved to a certain extent. They all lived happily ever after.
+No child was saved. More children actually died due to our actions.
 
 \bibliographystyle{apalike}
 \bibliography{bibliography}
