@@ -225,7 +225,7 @@ model.fit(
     train_ds,
     batch_size=BATCHSIZE,
     validation_data=test_ds,
-    epochs=1,
+    epochs=2,
     class_weight=class_weight,
     callbacks=[model_checkpoint_callback],
 )
@@ -236,3 +236,20 @@ model.evaluate(test_ds, batch_size=BATCHSIZE)
 
 print("Timing model:")
 timeit(model.predict, test_ds, batch_size=BATCHSIZE)
+
+# making confusion matrix
+y_test = None
+for _, labels in test_ds:
+    if y_test is None:
+        y_test = labels
+
+    else:
+        y_test = tf.concat([y_test, labels], axis=0)
+
+pred = model.predict(test_ds)
+pred = tf.where(pred > 0.5, 1, 0)
+pred = tf.squeeze(pred)
+conf = conf_mat(pred, y_test, 2)
+conf = perc(conf)
+
+plot_confusion(conf, title="Confusion matrix - CNN - MNIST")
