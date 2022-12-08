@@ -2,8 +2,8 @@ import tensorflow as tf
 import os
 from tensorflow.keras import layers
 from tensorflow.keras import regularizers
-import tensorflow_datasets as tfds
 import keras_tuner as kt
+from utils import *
 
 filedir = os.path.dirname(__file__)
 from functools import partial
@@ -142,9 +142,9 @@ tuner = kt.Hyperband(
     directory="conv_nn_pneu-params",
 )
 
-tuner.search(train_ds, epochs=10, validation_data=val_ds, class_weight=class_weight)
-best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-learning_rate = best_hps.get("learning_rate")
+# tuner.search(train_ds, epochs=10, validation_data=val_ds, class_weight=class_weight)
+# best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+learning_rate = 0.001  # best_hps.get("learning_rate")
 
 print(learning_rate)
 
@@ -225,7 +225,7 @@ model.fit(
     train_ds,
     batch_size=BATCHSIZE,
     validation_data=test_ds,
-    epochs=15,
+    epochs=1,
     class_weight=class_weight,
     callbacks=[model_checkpoint_callback],
 )
@@ -233,3 +233,6 @@ model.fit(
 model.load_weights(checkpoint_filepath)
 
 model.evaluate(test_ds, batch_size=BATCHSIZE)
+
+print("Timing model:")
+timeit(model.predict, test_ds, batch_size=BATCHSIZE)
