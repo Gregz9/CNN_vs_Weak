@@ -113,7 +113,11 @@ with tf.device("/cpu:0"):
 
         else:
             X_train = tf.concat(
-                [X_train, (tf.reshape(batch, shape=[-1, IMG_HEIGHT * IMG_WIDTH]) / 255.0)], axis=0
+                [
+                    X_train,
+                    (tf.reshape(batch, shape=[-1, IMG_HEIGHT * IMG_WIDTH]) / 255.0),
+                ],
+                axis=0,
             )
             y_train = tf.concat([y_train, labels], axis=0)
 
@@ -124,7 +128,11 @@ with tf.device("/cpu:0"):
 
         else:
             X_test = tf.concat(
-                [X_test, (tf.reshape(batch, shape=[-1, IMG_HEIGHT * IMG_WIDTH]) / 255.0)], axis=0
+                [
+                    X_test,
+                    (tf.reshape(batch, shape=[-1, IMG_HEIGHT * IMG_WIDTH]) / 255.0),
+                ],
+                axis=0,
             )
             y_test = tf.concat([y_test, labels], axis=0)
 
@@ -211,16 +219,29 @@ with tf.device("/gpu:0"):
     model.load_weights(checkpoint_filepath)
 
     model.evaluate(X_test_pca, y_test, batch_size=BATCHSIZE)
+    print(f"Time taken: {time.time() - start}")
 
     X_train_pca_restored = pca.inverse_transform(X_test_pca)
 
-    plt.subplot(121)
-    plt.title("Actual instance 51k features", size=22)
+    plt.subplot(421)
+    plt.title(f"Actual instance 51k features. Class {Y_train[0]}", size=18)
     plt.imshow(tf.reshape(X_train[0], (227, 227)))
-
-    plt.subplot(122)
-    plt.title("PCA with 9 components", size=22)
+    plt.subplot(422)
+    plt.title("PCA with 9 components", size=18)
     plt.imshow(tf.reshape(X_train_pca_restored[0], (227, 227)))
-    plt.show()
 
-    print(f"Time taken: {time.time() - start}")
+    plt.subplot(421)
+    plt.title(f"Actual instance 51k features. Class {Y_train[1]}", size=18)
+    plt.imshow(tf.reshape(X_train[1], (227, 227)))
+    plt.subplot(422)
+    plt.title("PCA with 9 components", size=18)
+    plt.imshow(tf.reshape(X_train_pca_restored[1], (227, 227)))
+
+    plt.subplot(421)
+    plt.title(f"Actual instance 51k features. Class {Y_train[2]}", size=18)
+    plt.imshow(tf.reshape(X_train[2], (227, 227)))
+    plt.subplot(422)
+    plt.title("PCA with 9 components", size=18)
+    plt.imshow(tf.reshape(X_train_pca_restored[2], (227, 227)))
+
+    plt.show()
