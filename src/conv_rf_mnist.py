@@ -71,7 +71,7 @@ model.fit(
 
 model.load_weights(checkpoint_filepath)
 
-model.evaluate(test_ds, batch_size=BATCHSIZE)
+model.evaluate(test_ds, batch_size=batch_size)
 
 feature_extractor = tf.keras.Model(
     inputs=model.inputs,
