@@ -21,6 +21,7 @@ PCA neural network used for pneumonia dataset. Builds and fits data, takes time.
 def model_builder(hp):
     hp_lambda = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3])
     hp_learning_rate = hp.Choice("learning_rate", values=[1e-3, 1e-2, 1e-1])
+    hp_units = hp.Choice("units", values=[9, 15, 17, 24, 30])
 
     kernel = tf.keras.regularizers.L2(l2=hp_lambda)
     bias = tf.keras.regularizers.L2(l2=hp_lambda)
@@ -28,19 +29,19 @@ def model_builder(hp):
     model = tf.keras.Sequential(
         [
             layers.Dense(
-                n_components,
+                hp_units,
                 kernel_regularizer=kernel,
                 bias_regularizer=bias,
                 activation="relu",
             ),
             layers.Dense(
-                n_components,
+                hp_units,
                 kernel_regularizer=kernel,
                 bias_regularizer=bias,
                 activation="relu",
             ),
             layers.Dense(
-                n_components,
+                hp_units,
                 kernel_regularizer=kernel,
                 bias_regularizer=bias,
                 activation="relu",
@@ -103,7 +104,7 @@ with tf.device("/cpu:0"):
     y_train = None
     y_test = None
 
-    n_components = 1000
+    n_components = 9
 
     for batch, labels in train_ds:
         if X_train is None:
@@ -151,28 +152,30 @@ with tf.device("/gpu:0"):
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
     lam = best_hps.get("lambda")
     learning_rate = best_hps.get("learning_rate")
+    units = best_hps.get("units")
 
     print(lam)
     print(learning_rate)
+    print(units)
 
     kernel = tf.keras.regularizers.L2(l2=lam)
     bias = tf.keras.regularizers.L2(l2=lam)
     model = tf.keras.Sequential(
         [
             layers.Dense(
-                n_components,
+                units,
                 kernel_regularizer=kernel,
                 bias_regularizer=bias,
                 activation="relu",
             ),
             layers.Dense(
-                n_components,
+                units,
                 kernel_regularizer=kernel,
                 bias_regularizer=bias,
                 activation="relu",
             ),
             layers.Dense(
-                n_components,
+                units,
                 kernel_regularizer=kernel,
                 bias_regularizer=bias,
                 activation="relu",
@@ -200,13 +203,13 @@ with tf.device("/gpu:0"):
         X_train,
         y_train,
         validation_data=(X_test, y_test),
-        epochs=6,
+        epochs=15,
         batch_size=64,
         class_weight=class_weight,
         callbacks=[model_checkpoint_callback],
     )
     model.load_weights(checkpoint_filepath)
 
-    model.evaluate(test_ds, batch_size=BATCHSIZE)
+    model.evaluate(X_test, y_test, batch_size=BATCHSIZE)
 
     print(f"Time taken: {time.time() - start}")
