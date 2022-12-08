@@ -237,7 +237,7 @@ model.evaluate(test_ds, batch_size=BATCHSIZE)
 
 feature_extractor = tf.keras.Model(
     inputs=model.inputs,
-    outputs=model.layers[-4].output,
+    outputs=model.layers[-1].output,
 )
 
 features_train = train_ds.map(lambda batch, label: (feature_extractor(batch), label))
