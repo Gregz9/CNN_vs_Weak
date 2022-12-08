@@ -26,8 +26,6 @@ n_components = 50
 x_train_flat = tf.reshape(x_train, shape=[-1, 784])
 x_test_flat = tf.reshape(x_test, shape=[-1, 784])
 
-start = time.time()
-
 pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
 pca.fit(x_train_flat)
 
@@ -35,10 +33,10 @@ x_train_pca = pca.transform(x_train_flat)
 x_test_pca = pca.transform(x_test_flat)
 
 train_ds = tf.data.Dataset.from_tensor_slices((x_train_pca, y_train))
-val_ds = tf.data.Dataset.from_tensor_slices((x_test_pca, y_test))
+test_ds = tf.data.Dataset.from_tensor_slices((x_test_pca, y_test))
 
 train_ds = train_ds.batch(batch_size)
-val_ds = val_ds.batch(batch_size)
+test_ds = test_ds.batch(batch_size)
 
 
 forest = tfdf.keras.RandomForestModel(
@@ -52,4 +50,13 @@ forest.fit(x=train_ds)
 forest.compile(metrics=["accuracy"])
 
 print(forest.evaluate(train_ds, return_dict=True))
-print(forest.evaluate(val_ds, return_dict=True))
+print(forest.evaluate(test_ds, return_dict=True))
+
+
+def predict():
+    x_test_pca = pca.transform(x_test_flat)
+    forest.predict((x_test_pca, y_test))
+
+
+print("Timing prediction")
+timeit(predict)
