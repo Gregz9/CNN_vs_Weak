@@ -147,7 +147,6 @@ with tf.device("/cpu:0"):
     tuner.choice("min_examples", [5, 7, 9, 11, 13])
 
     # Random Forest model
-    # forest = tfdf.keras.RandomForestModel(max_depth=3, min_examples=9, check_dataset=False)
     forest = tfdf.keras.RandomForestModel(tuner=tuner, check_dataset=False)
 
     forest.fit(X_train_pca, y_train, class_weight=class_weight)

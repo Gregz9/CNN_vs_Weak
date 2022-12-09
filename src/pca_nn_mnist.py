@@ -13,7 +13,7 @@ from sklearn.model_selection import KFold
 tf.config.experimental.enable_op_determinism()
 tf.keras.utils.set_random_seed(1336)
 """
-This file contains a combination of the PCA algorithm from SciKit-learn 
+This file contains a combination of the stochastic PCA algorithm from SciKit-learn 
 library used for feature extraction and dimensionality reduction, and 
 an implementation of a neural network constructed by using the 
 tensorflow API which is then fed the first n principal components. 
@@ -74,8 +74,8 @@ best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 units = best_hps.get("units")
 learning_rate = best_hps.get("learning_rate")
 
-print(units)
-print(learning_rate)
+print(f"{units=}")
+print(f"{learning_rate=}")
 
 # ------------------------------- Extracting principal components -------------------------------
 start = time.time()
@@ -120,9 +120,9 @@ conf = conf_mat(predictions, y_test, num_cls=10)
 conf = perc(conf)
 plot_confusion(conf, title="Confusion matrix - PCA_NN - MNIST")
 
-print(results)
+print(f"{results=}")
 
-print(results["accuracy"])
+print(f"{results["accuracy"]=}")
 
 
 def predict():

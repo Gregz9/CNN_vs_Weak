@@ -8,8 +8,8 @@ from utils import *
 """
 This file contains code for a CNN model using AlexNet architecture ( 
 won the ILSVRC challenge in 2012) which is applied to the Pneumonia dataset.
-The script performs outputs the final training and test accuracies, and plots 
-a confusion matrix after the model is finished predicting.
+The script outputs the final training and test accuracies, and plots 
+a confusion matrix after the model has finished prediction.
 """
 
 
@@ -121,12 +121,10 @@ def model_builder(hp):
             ),
             tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
             tf.keras.layers.Flatten(),
-            # tf.keras.layers.Dropout(0.2),
             tf.keras.layers.Dense(
                 4096,
                 activation="relu",
             ),
-            # tf.keras.layers.Dropout(0.2),
             tf.keras.layers.Dense(
                 4096,
                 activation="relu",
@@ -144,19 +142,8 @@ def model_builder(hp):
     return model
 
 
-tuner = kt.Hyperband(
-    model_builder,
-    objective="val_accuracy",
-    max_epochs=10,
-    factor=3,
-    directory="conv_nn_pneu-params",
-)
-
-# tuner.search(train_ds, epochs=10, validation_data=val_ds, class_weight=class_weight)
-# best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-learning_rate = 0.001  # best_hps.get("learning_rate")
-
 # --------------------------------- AlexNet CNN ----------------------------------
+learning_rate = 0.001
 model = tf.keras.Sequential(
     [
         tf.keras.layers.Rescaling(1.0 / 255),
@@ -242,6 +229,7 @@ model.fit(
 model.load_weights(checkpoint_filepath)
 
 model.evaluate(test_ds, batch_size=BATCHSIZE)
+
 # Average prediction time measurement
 print("Timing model:")
 timeit(model.predict, test_ds, batch_size=BATCHSIZE)

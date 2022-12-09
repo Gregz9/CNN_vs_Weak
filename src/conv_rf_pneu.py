@@ -123,12 +123,10 @@ def model_builder(hp):
             ),
             tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
             tf.keras.layers.Flatten(),
-            # tf.keras.layers.Dropout(0.2),
             tf.keras.layers.Dense(
                 4096,
                 activation="relu",
             ),
-            # tf.keras.layers.Dropout(0.2),
             tf.keras.layers.Dense(
                 4096,
                 activation="relu",
@@ -203,12 +201,10 @@ model = tf.keras.Sequential(
         ),
         tf.keras.layers.MaxPooling2D(pool_size=(3, 3), strides=2, padding="valid"),
         tf.keras.layers.Flatten(),
-        # tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(
             4096,
             activation="relu",
         ),
-        # tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(
             4096,
             activation="relu",
@@ -273,6 +269,7 @@ print(forest.evaluate(features_test, return_dict=True))
 def predict():
     features_test = test_ds.map(lambda batch, label: (feature_extractor(batch), label))
     forest.predict(features_test)
+
 
 print("Timing prediction")
 timeit(predict)
