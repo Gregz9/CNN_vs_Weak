@@ -24,8 +24,6 @@ mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
-print(x_train.shape)
-
 x_train = tf.reshape(x_train, shape=[-1, 28, 28, 1])
 x_test = tf.reshape(x_test, shape=[-1, 28, 28, 1])
 
@@ -93,9 +91,7 @@ features_test = test_ds.map(lambda batch, label: (feature_extractor(batch), labe
 # Random Forest model
 forest = tfdf.keras.RandomForestModel(
     verbose=1,
-    # max_depth=25,
     random_seed=1337,
-    # num_trees=300,  # , tuner=tuner#, check_dataset=False
 )
 forest.fit(x=features_train)
 
@@ -104,9 +100,8 @@ forest.compile(metrics=["accuracy"])
 print(forest.evaluate(features_train, return_dict=True))
 print(forest.evaluate(features_test, return_dict=True))
 
+
 # timing:
-
-
 def predict():
     features_test = test_ds.map(lambda batch, label: (feature_extractor(batch), label))
     forest.predict(features_test)

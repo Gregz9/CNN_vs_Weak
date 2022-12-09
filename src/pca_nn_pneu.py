@@ -13,8 +13,8 @@ from sklearn.decomposition import PCA
 """
 This script contains an implementation of a neural network constructed by using the 
 tensorflow API which is then fed the first n principal components extracted through the 
-use of the SciKit-learns PCA implementation from X-Ray images of Pneumonia obesrved in children.
-The sript outputs the training and test accurcies achieved, and average time spen on prediction (time 
+use of the SciKit-learns randomized PCA implementation from X-Ray images of Pneumonia obesrved in children.
+The sript outputs the training and test accurcies achieved, and average time spent on prediction (time 
 spent on training exluded). 
 """
 
@@ -24,7 +24,7 @@ tf.keras.utils.set_random_seed(1336)
 # Module from tensorflow enabling override of GPU settings
 tf.config.experimental.enable_op_determinism()
 
-# ------------------------------------ Hyperparameter tuner  ------------------------------------  
+# ------------------------------------ Hyperparameter tuner  ------------------------------------
 def model_builder(hp):
     hp_lambda = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3])
     hp_learning_rate = hp.Choice("learning_rate", values=[1e-5, 1e-4, 1e-3, 1e-2, 1e-1])
@@ -65,11 +65,12 @@ def model_builder(hp):
 
     return model
 
+
 # ------------------------------------- Loading data -------------------------------------------
 with tf.device("/cpu:0"):
     TRAINDIR = filedir + "/../data/chest_xray/train"
     TESTDIR = filedir + "/../data/chest_xray/test"
-    BATCHSIZE = 256#128
+    BATCHSIZE = 256
     IMG_HEIGHT = 227
     IMG_WIDTH = 227
 
@@ -91,7 +92,7 @@ with tf.device("/cpu:0"):
         color_mode="grayscale",
     )
 
-# ----------------------------------- Preprocessing ---------------------------------------------
+    # ----------------------------------- Preprocessing ---------------------------------------------
     COUNT_NORMAL = 1071
     COUNT_PNEUMONIA = 3114
 
@@ -171,11 +172,11 @@ with tf.device("/gpu:0"):
     learning_rate = best_hps.get("learning_rate")
     units = best_hps.get("units")
 
-    print(lam)
-    print(learning_rate)
-    print(units)
+    print(f"{lam=}")
+    print(f"{learning_rate=}")
+    print(f"{units=}")
 
-# --------------------------------- Neural Network model ----------------------------------------
+    # --------------------------------- Neural Network model ----------------------------------------
     kernel = tf.keras.regularizers.L2(l2=lam)
     bias = tf.keras.regularizers.L2(l2=lam)
     model = tf.keras.Sequential(
@@ -234,13 +235,17 @@ with tf.device("/gpu:0"):
         x_test_pca = pca.transform(X_test)
         model.predict((x_test_pca, y_test))
 
-   
-    # with tf.device('/cpu:0'):
-    print("Timing prediction")
+    # time gpu
+    print("Timing prediction GPU")
+    timeit(predict)
+
+# time cpu
+with tf.device("/cpu:0"):
+    print("Timing prediction CPU")
     timeit(predict)
 
     X_train_pca_restored = pca.inverse_transform(X_test_pca)
-# ------------------------ Images reconstructed using only n principal components -----------------------------
+    # ------------------------ Images reconstructed using only n principal components -----------------------------
     plt.subplot(421)
     plt.title(f"Actual instance, 51k features. Class {y_train[0]}", size=18)
     plt.imshow(tf.reshape(X_train[0], (227, 227)))
@@ -265,7 +270,7 @@ with tf.device("/gpu:0"):
     plt.imshow(tf.reshape(X_train[29], (227, 227)))
     plt.subplot(428)
     plt.imshow(tf.reshape(X_train_pca_restored[29], (227, 227)))
-    
+
     plt.show()
 
     pred = model.predict((X_test_pca, y_test))
