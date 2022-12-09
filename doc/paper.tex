@@ -13,8 +13,6 @@
 \usepackage{xcolor}
 \usepackage{xurl}
 
-
-
 %%% first author
 \author{Jonatan H. Hanssen
     \affiliation{
@@ -38,16 +36,6 @@
     }
 }
 
-% \author{Ed "Gurgler" Bickley
-%     \affiliation{
-% 	Inmate, Texas State \\
-% 	Penistentiary\\ \\[-10pt]
-% 	Huntsville, Texas\\ \\[-10pt]
-% 	United States of America\\
-%     Email: thegurgler@hotmail.com
-%     }
-% }
-
 \author{Gregor Kajda
     \affiliation{
 	Bachelor Student, Robotics and \\
@@ -59,23 +47,21 @@
     }
 }
 
-
 \begin{document}
 
-% \title{Liminations of computing compunations using tensorflow implemenation}
 \title{Hybrid models as an alternative to traditional Convolutional Neural Networks for image classification}
 
 \maketitle
 
 \section{Abstract}
 
-We compared convolutional neural networks, the de facto standard for image classification problems, with hybrid models created by combining neural networks with Principal Component Analysis (PCA) and Random Forests (RF). By doing this, we explored the tradeoff between prediction accuracy and computational cost for four different ML models: A pure CNN model, a CNN-RF model, a PCA-NN model and a PCA-RF model. We used these models on the well known MNIST dataset and the Guangzhou Pneumonia Dataset consisting of x-ray images of potential cases of pneumonia. From this, we found that pure CNNs performed best in terms of accuracy, achieving test accuracies of $98.8\%$ and $88.8\%$ on the MNIST and pneumonia dataset, respectively. However, we found that the PCA-NN model performed similarly, at a much lower computational cost MAYBE.
+We compared convolutional neural networks, the de facto standard for image classification problems, with hybrid models created by combining neural networks with Principal Component Analysis (PCA) and Random Forests (RF). By doing this, we explored the tradeoff between prediction accuracy and computational cost for four different ML models: A pure CNN model, a CNN-RF model, a PCA-NN model and a PCA-RF model. We used these models on the well known MNIST dataset and the Guangzhou Pneumonia Dataset consisting of x-ray images of potential cases of pneumonia. From this, we found that pure CNNs performed best in terms of accuracy, achieving test accuracies of $99.0\%$ and $88.8\%$ on the MNIST and pneumonia dataset, respectively. However, we found that the PCA-NN model performed similarly, at a much lower computational cost, achieving an impressive $88\%$ increase in prediction speed at a cost of only $1.1$ percentage points in accuracy.
 
 \section{Introduction}
 
-The task of image recognition and classification is a great challenge in machine learning, as there are a large number of features present in the data which slow down our training. For a relatively small one-channel image of $200$ by $200$ pixels, the naive approach of using every pixel as a feature becomes unfeasable, as we now have $40000$ features. Clearly, some form of dimension reduction must be used to rectify this problem, and Convolutional Neural Networks (CNNs) are regarded as the gold standard for this. CNNs are able to reduce the dimensionality while extracting useful information in each layer, for example by finding edges in the first layer, combinations of edges that make a shape in the next layer, and combinations of shapes that resemble an object in the last layer. However, CNNs have many hyperparameters that need to be adjusted to achieve optimal performance, and a slow and computationally intensive training process. Furthermore, the prediction process itself can be slow, depending on the size of the network and the hardware availiable. In small embedded systems without GPUs, or in systems with strict real-time constraints, a CNN may not be the best option. In this paper, we explore alternative models for image classification, using Principal Component Analysis and Random Forests in combination with parts of the traditional CNN model. We will investigate how these architectures perform for a simple image classification problem such as the MNIST dataset, as well as a more difficult classification problem in the form of pneumonia prediction from X-ray images. 
+The task of image recognition and classification is a great challenge in machine learning, as there are a large number of features present in the data which slow down our training. For a relatively small one-channel image of $227$ by $227$ pixels, the naive approach of using every pixel as a feature becomes unfeasable, as we now have $51$ thousand features. Clearly, some form of dimension reduction must be used to rectify this problem, and Convolutional Neural Networks (CNNs) are regarded as the gold standard for this. CNNs are able to reduce the dimensionality while extracting useful information in each layer, for example by finding edges in the first layer, combinations of edges that make a shape in the next layer, and combinations of shapes that resemble an object in the last layer. However, all these layers of convolution introduce significant computational costs, and CNNs are often reliant on Graphical Processing Units (GPUs) for efficient training and prediction. In many embedded systems or mobile devices, the computational cost introduced by using deep CNNs may not be ideal, as the absence of dedicated hardware may lead to long prediction times. Furthermore, these systems may have real-time constraints, needing to make many predictions per second. In this paper, we explore alternative models for image classification, using Principal Component Analysis and Random Forests in combination with parts of the traditional CNN model. We will investigate how these architectures perform for a simple image classification problem such as the MNIST dataset, as well as a more difficult classification problem in the form of pneumonia prediction from X-ray images. 
 
-More specifically, we will compare four different architectures. First we will use a traditional CNN, where a series convolutional layers is followed by a series fully connected layers. Then we will modify our CNN to create a hybrid CNN-RF model, where the features extracted by the CNN are fed into a Random Forest which makes the final prediction. Finally, we will make use of Principal Component Analysis instead of convolution and pooling for dimensionality reduction, feeding the results of this stage into either a Neural Network or a Random Forest. In doing this, we hope to answer the following question: could hybrid models be a viable alternative to CNNs, either by directly outperforming them in accuracy or by offering an appealing tradeoff of performance and computational effort?
+More specifically, we will compare four different architectures. First we will use a traditional CNN, where a series convolutional layers is followed by a series fully connected layers. We will then modify our CNN to create a hybrid CNN-RF model, where the features extracted by the CNN are fed into a Random Forest, which makes the final prediction. Finally, we will make use of Principal Component Analysis instead of convolution and pooling for dimensionality reduction, feeding the results of this stage into either a Neural Network or a Random Forest. In doing this, we hope to answer the following question: could hybrid models be a viable alternative to CNNs, either by directly outperforming them in accuracy, or by offering an appealing tradeoff between performance and computational effort?
 
 First, we will give an explanation of the theory and method used in this paper, followed up with a detailed discussion of our results. Finally, we will arrive at a conclusion which summarizes our core results and lessons.
 
@@ -202,9 +188,7 @@ With somewhat disappointing results from introducing a different model when maki
 \label{pcacomp}
 \end{figure}
 
-Using different amount of principal components, we sent the reduced dataset into a neural network with three hidden layers. After testing different amounts of principal components to keep, and tuning the hyperparameters based on these, we found that even with only $50$ principal components, we achieved a test accuracy of $97.8\%$. This is comparable to the accuracy obtained by a traditional convolutional neural network. Furthermore, when looking at the speed at which we are able to make predictions, we see that this model makes predictions around $34\%$ faster than a pure CNN model, while sacrificing less than a single percentage point in accuracy. However, when using a GPU, there is very little difference in prediction time between the two models. Regardless, this decrease in computational effort could offer an appealing tradeoff for embedded systems which do not have access to dedicated GPUs.
-
-% When using only a CPU, the PCA-NN model was much less intensive, requiring only $17$ seconds to complete training, while the convolutional neural network used $164$ seconds. This tells us that when computational resources are limited, simpler architectures can give reasonable results in a fraction of the time\footnote{Of course, you would ideally train your network on better hardware, even if the hardware making the prediction does not have a GPU. However, the same ratio holds when making a single prediction as opposed to training the entire model. That is, the PCA-NN model is much faster at making a single prediction than the CNN model}. However, when using a GPU with CUDA cores, the story is quite different: Here, the CNN used only $6$ seconds, while the PCA-NN model took $12$ seconds\footnote{The fact that this model took longer than the CNN is most likely because the PCA function we use only runs on the CPU, meaning that only the neural net part is actually running on the GPU}. Looking at the confusion matrix (Fig.~\ref{mnistheatmap_pcann}), we can see that we are again achieving very few misclassifications using the PCA-NN model.
+Using different amount of principal components, we sent the reduced dataset into a neural network with three hidden layers. After testing different amounts of principal components to keep, and tuning the hyperparameters based on these, we found that even with only $50$ principal components, we achieved a test accuracy of $98.1\%$. This is comparable to the accuracy obtained by a traditional convolutional neural network. Looking at figure~\ref{mnistheatmap_pcann}, we again see that we are making accurate predictions across all classes. Furthermore, when looking at the speed at which we are able to make predictions, we see that this model makes predictions around $34\%$ faster than a pure CNN model, while sacrificing less than a single percentage point in accuracy. However, when using a GPU, there is very little difference in prediction time between the two models. Regardless, this decrease in computational effort could offer an appealing tradeoff for embedded systems which do not have access to dedicated GPUs.
 
 \begin{figure}[H]
 \centerline{\includegraphics[width=8in]{figure/conf_pca_nn_MNIST.png}}
@@ -215,14 +199,14 @@ Using different amount of principal components, we sent the reduced dataset into
 
 \subsubsection{Principal Component Analysis followed by a Random Forest}
 
-Satisfied with the results achieved by replacing the convolutional stage with Principal Component Analysis, we attempt to sidestep neural networks all together, and use PCA followed by a random forest. Here, we achieved a reasonable result of $94.7\%$ accuracy on the test set. Although this is not as impressive as the previous models, it shows that decent results can be achieved without using neural networks at all. However, we clearly see that traditional CNNs have performances which are hard to beat using other forms of dimensionality reduction.
+Satisfied with the results achieved by replacing the convolutional stage with Principal Component Analysis, we attempt to sidestep neural networks all together, and use PCA followed by a random forest. Here, we achieved a reasonable result of $94.8\%$ accuracy on the test set. Although this is not as impressive as the previous models, it shows that decent results can be achieved without using neural networks at all. Furthermore, we again see a slight performance gain in our prediction, with this model being $38\%$ faster than the pure CNN model at making a prediction for the entire test dataset. However, the decrease in accuracy makes this tradeoff less appealing, and because the libraries we use do not offer GPU accelaration when using PCA or random forests, there is no reason to use this model when a GPU is available.
 
-\subsubsection{MNIST recap}
+\subsubsection{MNIST model comparison}
 
-Below is table showing the accuracy and average prediction time for each model on the MNIST dataset.
+With each model optimized and tested, we can compare them to eachother in terms of accuracy and prediction speed. Table~\ref{modcompmnist} shows the relevant values for each model. From this we can gain several insights. Firstly, we can see that we have not been able to outperform a pure CNN model with any of our hybrid models. This is not so surprising, as CNNs are regarded as the gold standard for image classification, for a multitude of reasons. However, we can also see that we are able to perform decently with all of our models, achieving test accuracies above $98\%$ for all models except the PCA-RF model, which achieved a test accuracy of $94.8\%$, a result that is still reasonable. Furthermore, both the PCA models were faster than the pure CNN model (without GPU acceleration), with the PCA-NN model presenting particularly appealing performance/cost-tradeoff.
 
 \begin{table}[H]
-\caption{Table showing the accuracy and average time used to make a prediction on the entire test dataset, for each model}
+\caption{Table showing the accuracy and average time used to make a prediction on the entire MNIST test dataset, for each model. All models have been tested on the same system, and the average speed is calculated over 5 predictions. Neither PCA nor RF utilize the GPU, and thus it is not possible to accelerate the PCA-RF model.}
 \begin{center}
 \label{modcompmnist}
 \begin{tabular}{| c | l | l | l |}
@@ -230,7 +214,7 @@ Below is table showing the accuracy and average prediction time for each model o
 Model & Test accuracy & Average prediction time & Avg. time when GPU accerelated \\
 \hline
 CNN & 99.0\% & 1.877s & 0.2895s \\
-CNN-RF & 98.9\% & 4.511s & 4.934s \\
+CNN-RF & 98.9\% & 4.910s & 4.898s \\
 PCA-NN & 98.1\% & 1.244 & 0.3073s \\
 PCA-RF & 94.8\% & 1.182s & - \\
 \hline
@@ -238,23 +222,21 @@ PCA-RF & 94.8\% & 1.182s & - \\
 \end{center}
 \end{table}
 
-From this we can see that bla bla bla
-
 \subsection{Guangzhou Pneumonia Data}
 
 As previously stated, the Guangzhou Pneumonia Dataset was collected and labeled as part of the article {\it Identifying Medical Diagnoses and Treatable Diseases by Image-Based Deep Learning}. In this article, the authors used transfer learning using a network previously trained on ImageNet to classify the x-ray images. With this method, they achieved a test accuracy of $92.8\%$ \cite[1127]{xray}. We now turn our attention to this dataset, and see if we can achieve similar results using our methods.
 
 \subsubsection{Traditional Convolutional Neural Network}
 
-Determining whether an x-ray shows a case of pneumonia or not is clearly a much more difficult classification problem than our previous dataset. Therefore, we initially had problems designing an architecture which achieved much higher than $80\%$ test accuracy. Clearly, we are not able to use a simple one convolutional layer model like we were able to on the MNIST dataset, and designing a general convolutional neural network architecture is a very complex task. Thus, we turn to the literature, and explore models which have been proven to be effective at image recognition. Out of the architectures presented in {\it Hands-On Machine Learning with Scikit-Learn and Tensorflow} \cite{geron}, we decided to try AlexNet, which won the ILSVRC 2012 challenge and is a relatively shallow network having $11$ hidden layers. Using this model, and using the Adam optimizer, we achieved a testing accuracy of $88.9\%$. Comparing our result to those obtained by Kermany et Al. ($92.8\%$), we see that our model is a few percentage points worse, however when considering that we are not using transfer learning and are completing training on a single laptop, we consider our results to be reasonably good.
+Determining whether an x-ray shows a case of pneumonia or not is clearly a much more difficult classification problem than our previous dataset. Therefore, we initially had problems designing an architecture which achieved much higher than $80\%$ test accuracy. Clearly, we are not able to use a simple one convolutional layer model like we were able to on the MNIST dataset, and designing a general convolutional neural network architecture is a very complex task. Thus, we turn to the literature, and explore models which have been proven to be effective at image recognition. Out of the architectures presented in {\it Hands-On Machine Learning with Scikit-Learn and Tensorflow} \cite{geron}, we decided to try AlexNet, which won the ILSVRC 2012 challenge. This choice of model was motivated by a few different reasons. Firstly, AlexNet is a relatively shallow network having only $11$ hidden layers. Furthermore, although more effective models have been created after 2012, many of these use more complicated architectures such as skip layers or layers which feed their outputs to all subsequent layers. AlexNet is both a relatively simple model to train using our available hardware, and a simple model to understand. Using AlexNet with the Adam optimizer, we achieved a testing accuracy of $88.9\%$. Comparing our result to those obtained by Kermany et Al. ($92.8\%$), we see that our model is a few percentage points worse, however when considering that we are not using transfer learning and are completing training on a single laptop, we consider our results to be reasonably good.
 
 \subsubsection{Convolution followed by a Random Forest}
 
-As with the MNIST dataset, we also found disappointing results when attempting to use a CNN-RF model on this dataset. Here, we achieved a test accuracy of $88.1\%$, which is $0.7\%$ lower than simply using the CNN as is to make the prediction. 
+As with the MNIST dataset, we also found disappointing results when attempting to use a CNN-RF model on this dataset. Here, we achieved a test accuracy of $88.1\%$, which is $0.7\%$ lower than simply using the CNN as is to make the prediction. Furthermore, using a random forests increases the computational complexity considerably as well, as can be seen from Table~\ref{modcomppneu}.
 
 \subsubsection{Principal Component Analysis followed by a Neural Network}
 
-Given the complexity of the network needed to achieve good results when using a CNN, one might not expect to find good results using PCA, which is a much more simplistic form of feature extraction. However, we have found that we can actually achieve very comparable results to AlexNet using a much simpler model. In our PCA-NN model, we tried different number of principal components to keep, and sent these components into a neural network with three hidden layers. Tuning the model, we found that optimal hyperparameters were as described by table~\ref{pcanntable}. Using these parameters, we were able to achieve a test accuracy of $87.8\%$. This is an impressive accuracy considering the simplicity of our model, and shows that it is possible to achieve reasonable results without turning to complex convolutional neural networks. Looking at figure~.\ref{pneupcacomp}, we can see how much information is left when using only $9$ principal components. From this we can see that while much detail has been lost, something something
+Again we then attempt to replace the feature extraction stage of a CNN with a simple application of Principal Component Analysis. Given the complexity of the network needed to achieve good results when using a CNN, one might not expect to find good results using PCA. However, we have found that we can actually achieve very comparable results to AlexNet using a much simpler model. In our PCA-NN model, we tried different number of principal components to keep, and sent these components into a neural network with three hidden layers. Tuning the model, we found that optimal hyperparameters were as described by Table~\ref{pcanntable}. Using these parameters, we were able to achieve a test accuracy of $87.8\%$. This is an impressive accuracy considering the simplicity of our model, and shows that it is possible to achieve reasonable results without turning to complex convolutional neural networks. Furthermore, this small decrease in accuracy came with a considerable gain in prediction speed when predicting using only the CPU, with the PCA-NN model being $88\%$ faster than the CNN on average (Table.~\ref{modcomppneu}). Of course, prediction of pneumonia is not a problem where one would trade accuracy for prediction speed, but there are many real-time use cases for image recognition where this is a tradeoff that is preferable.
 
 \begin{table}[H]
 \caption{Optimal hyperparameters for the PCA-NN model}
@@ -270,24 +252,26 @@ Principal Components & Nodes per hidden layer & Learning Rate & Lambda \\
 \end{center}
 \end{table}
 
-% \begin{figure}[H]
-% \centerline{\includegraphics[width=8in]{figure/pneupcacomp.png}}
-% \caption{Figure showing an image from the Guangzhou dataset, compared to the PCA reconstruction of the same image using only 9 principal components}
-% \label{pneupcacomp}
-% \end{figure}
+The fact that only $9$ components where needed is quite surprising, but could be explained by the homogeneity of the dataset. Unlike the MNIST dataset, where each class is very different, both the positive and negative classes of pneumonia have images which are very similar, as can be seen in figure~\ref{pneupcacomp}. It is then likely that the first $9$ principal components capture the variance which in large part decides whether an image displays of a case of pneumonia or not. In figure~\ref{pneupcacomp} we can also see the recreated images from the $9$ components. Although it is difficult for the human eye to differentiate the negative from the positive in these images, there is clearly enough information left, given that the model achieves the test accuracy that it does.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=6in]{figure/pneupcacomp.png}}
+\caption{Instances from the Guangzhou dataset and their PCA reconstruction using only 9 principal components}
+\label{pneupcacomp}
+\end{figure}
 
 \subsubsection{Principal Component Analysis followed by a Random Forest}
 
-Yet again impressed with the performance of using a simpler model, we attempt to perform the same classification without using neural networks at all. Using a PCA-RF model, we achieved a test accuracy of $83.7\%$. NEED TIME STATS FOR THE REST
+Yet again impressed with the performance of using a simpler model, we attempt to perform the same classification without using neural networks at all. Using a PCA-RF model, we achieved a test accuracy of $84.9\%$. Although this is lower than the other models, this model was by far the fastest when only a CPU, being $94\%$ faster than the CNN and $50\%$ faster than the PCA-NN model (Table.~\ref{modcomppneu}). Like with the MNIST dataset, we see that we are able to trade accuracy for performance by using simpler hybrid models to make our prediction.
 
 \subsubsection{Pneumonia recap}
 
-Below is table showing the accuracy and average prediction time for each model on the Guangzhou Pneumonia Dataset.
+Having optimized all our models, we are again able to compare them against eachother in terms of accuracy and performance. Looking at table~\ref{modcomppneu}, we see much of the same story as with the MNIST dataset. We see that the pure CNN is the optimal choice when accuracy is the most important factor, and the undisputed champion in terms of both accuracy and prediction time if a GPU is available. However, when looking at CPU-prediction times, the CNN is quite slow, and the PCA-NN model makes a strong case for trading a single percentage point of accuracy for an $88\%$ increase in speed. While they cannot beat the CNN in terms of accuracy, these simpler models are ideal an fit for embedded systems with real-time constraints.
 
 \begin{table}[H]
 \caption{Table showing the accuracy and average time used to make a prediction on the entire test dataset, for each model}
 \begin{center}
-\label{pcanntable}
+\label{modcomppneu}
 \begin{tabular}{| c | l | l | l |}
 \hline
 Model & Test accuracy & Average prediction time & Avg. time when GPU accerelated \\
@@ -303,21 +287,9 @@ PCA-RF & 84.9\% & 0.1667s & - \\
 
 \section{Conclusion}
 
-No child was saved. More children actually died due to our actions. Nevermind childern actually were saved.
+In this paper, we have compared CNNs to different hybrid models, in an attempt to explore the accuracy/performance-tradeoff of model complexity and prediction time. We have applied four different machine learning models on the MNIST and Guangzhou Pneumonia dataset, and compared their accuracy and prediction time against eachother. In our application of these models, we found that the CNN performed best in terms of accuracy on both datasets, achieving test accuracies of $99.0\%$ and $88.8\%$ on the MNIST and Pneumonia dataset, respectively. However, we also found that the PCA-NN model performed well, achieving accuracies of $98.1\%$ and $88.1\%$ on the same datasets. Furthermore, these results were achieved at a much lower computational cost, with the PCA-NN model being $88\%$ faster at making predictions (when not using a GPU). These results make a compelling case for using simpler models when using systems which are time constrained and lacking in dedicated machine learning hardware. To explore these findings further, one could look at other combinations of machine learning models, such as Gradient Boosted Trees or Support Vector Machines. Another option would be to use more effective architectures than AlexNet, such as DenseNet, which may achieve good accuracies without incurring long prediction times.
 
 \bibliographystyle{apalike}
 \bibliography{bibliography}
-
-\section*{Appendix}
-
-Here are some pictures of Eric Reber, formerly known as the criminal Ed "Gurgler" Bickley of Texas State Penistentiary.
-
-
-\begin{figure}[h]
-\centerline{\includegraphics[width=3.25in]{/home/jona/pictures/cat.jpg}}
-\caption{Eric Reber in his most devious form}
-\label{real1msetraintest}
-\end{figure}
-
 
 \end{document}
