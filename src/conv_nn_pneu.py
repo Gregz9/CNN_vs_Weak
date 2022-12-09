@@ -5,13 +5,23 @@ from tensorflow.keras import regularizers
 import keras_tuner as kt
 from utils import *
 
+"""
+This file contains code for a CNN model using AlexNet architecture ( 
+won the ILSVRC challenge in 2012) which is applied to the Pneumonia dataset.
+The script performs outputs the final training and test accuracies, and plots 
+a confusion matrix after the model is finished predicting.
+"""
+
+
 filedir = os.path.dirname(__file__)
 from functools import partial
 
 seed = 1336
 tf.keras.utils.set_random_seed(seed)
+# Module from tensorflow enabling override of GPU settings
 tf.config.experimental.enable_op_determinism()
 
+# ------------------------------- Loading data ------------------------------------
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
 BATCHSIZE = 256
@@ -47,7 +57,7 @@ test_ds = tf.keras.utils.image_dataset_from_directory(
     batch_size=BATCHSIZE,
     color_mode="grayscale",
 )
-
+# --------------------------- Adjusting class ratio ----------------------------
 COUNT_NORMAL = 1071
 COUNT_PNEUMONIA = 3114
 
@@ -61,7 +71,7 @@ AUTOTUNE = tf.data.AUTOTUNE
 train_ds = train_ds.cache().prefetch(buffer_size=AUTOTUNE)
 test_ds = test_ds.cache().prefetch(buffer_size=AUTOTUNE)
 
-
+# ------------------------------ Hyperparameter tuner ---------------------------------
 def model_builder(hp):
     hp_learning_rate = hp.Choice(
         "learning_rate", values=[2 * 1e-5, 2 * 1e-4, 2 * 1e-3, 2 * 1e-2, 2 * 1e-1]
@@ -146,8 +156,7 @@ tuner = kt.Hyperband(
 # best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 learning_rate = 0.001  # best_hps.get("learning_rate")
 
-print(learning_rate)
-
+# --------------------------------- AlexNet CNN ----------------------------------
 model = tf.keras.Sequential(
     [
         tf.keras.layers.Rescaling(1.0 / 255),
@@ -211,7 +220,7 @@ model.compile(
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
-
+# Saves the weights from the best trainig epoch
 checkpoint_filepath = "/tmp/checkpoint"
 model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=checkpoint_filepath,
@@ -225,7 +234,7 @@ model.fit(
     train_ds,
     batch_size=BATCHSIZE,
     validation_data=test_ds,
-    epochs=15,
+    epochs=7,
     class_weight=class_weight,
     callbacks=[model_checkpoint_callback],
 )
@@ -233,7 +242,7 @@ model.fit(
 model.load_weights(checkpoint_filepath)
 
 model.evaluate(test_ds, batch_size=BATCHSIZE)
-
+# Average prediction time measurement
 print("Timing model:")
 timeit(model.predict, test_ds, batch_size=BATCHSIZE)
 
@@ -246,10 +255,11 @@ for _, labels in test_ds:
     else:
         y_test = tf.concat([y_test, labels], axis=0)
 
+# -------------------------- Plotting the confusion matrix -----------------------------
 pred = model.predict(test_ds)
 pred = tf.where(pred > 0, 1, 0)
 pred = tf.squeeze(pred)
 conf = conf_mat(pred, y_test, 2)
 conf = perc(conf)
 
-plot_confusion(conf, title="Confusion matrix - CNN - MNIST")
+plot_confusion(conf, title="Confusion matrix - CNN - PNEUMONIA")

@@ -15,10 +15,14 @@ filedir = os.path.dirname(__file__)
 
 tf.keras.utils.set_random_seed(1336)
 """
-PCA neural network used for pneumonia dataset. Builds and fits data, takes time.
+This file contains a combination of the PCA algorithm from SciKit-learn 
+library used for feature extraction and dimensionality reduction, and 
+Random Decision Forest algorithm from Tensorflow API. The first n 
+principal components output by the PCA are fed as input to the Random 
+Forest model, and used for classification of images from the Pneumonia dataset. 
 """
 
-
+# -------------------------------- Hyperparameter tuner -----------------------------------
 def model_builder(hp):
     hp_lambda = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3])
     hp_learning_rate = hp.Choice("learning_rate", values=[1e-3, 1e-2, 1e-1])
@@ -58,13 +62,13 @@ def model_builder(hp):
 
     return model
 
-
+# ---------------------------------- Loading data -----------------------------------
 with tf.device("/cpu:0"):
     TRAINDIR = filedir + "/../data/chest_xray/train"
     TESTDIR = filedir + "/../data/chest_xray/test"
     batch_size = 128
-    IMG_HEIGHT = 200
-    IMG_WIDTH = 200
+    IMG_HEIGHT = 227
+    IMG_WIDTH = 227
 
     train_ds = tf.keras.utils.image_dataset_from_directory(
         TRAINDIR,
@@ -86,7 +90,7 @@ with tf.device("/cpu:0"):
 
     COUNT_NORMAL = 1071
     COUNT_PNEUMONIA = 3114
-
+# --------------------------------- Adjusting class ratio -------------------------------------
     weight_for_0 = (1 / COUNT_NORMAL) * (COUNT_NORMAL + COUNT_PNEUMONIA) / 2.0
     weight_for_1 = (1 / COUNT_PNEUMONIA) * (COUNT_NORMAL + COUNT_PNEUMONIA) / 2.0
 
@@ -103,28 +107,28 @@ with tf.device("/cpu:0"):
     X_test = None
     y_train = None
     y_test = None
-
+# ----------------------------------- Preproessing -------------------------------------------
     n_components = 9
 
     for batch, labels in train_ds:
         if X_train is None:
-            X_train = tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0
+            X_train = tf.reshape(batch, shape=[-1, IMG_WIDTH * IMG_HEIGHT]) / 255.0
             y_train = labels
 
         else:
             X_train = tf.concat(
-                [X_train, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0
+                [X_train, (tf.reshape(batch, shape=[-1, IMG_WIDTH * IMG_HEIGHT]) / 255.0)], axis=0
             )
             y_train = tf.concat([y_train, labels], axis=0)
 
     for batch, labels in test_ds:
         if X_test is None:
-            X_test = tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0
+            X_test = tf.reshape(batch, shape=[-1, IMG_WIDTH * IMG_HEIGHT]) / 255.0
             y_test = labels
 
         else:
             X_test = tf.concat(
-                [X_test, (tf.reshape(batch, shape=[-1, 200 * 200]) / 255.0)], axis=0
+                [X_test, (tf.reshape(batch, shape=[-1, IMG_WIDTH * IMG_HEIGHT]) / 255.0)], axis=0
             )
             y_test = tf.concat([y_test, labels], axis=0)
 
@@ -136,16 +140,30 @@ with tf.device("/cpu:0"):
 
     X_train_pca = pca.transform(X_train)
     X_test_pca = pca.transform(X_test)
+    
+    # Hyperparameter tuning for Random Forests 
+    tuner = tfdf.tuner.RandomSearch(num_trials=20)
+    tuner.choice("max_depth", [5, 10, 15, 20, 25, 30])
+    tuner.choice("min_examples", [5, 7, 9, 11, 13])
 
-    forest = tfdf.keras.RandomForestModel(
-        verbose=1, max_depth=40, random_seed=1337, check_dataset=False
-    )
+    # Random Forest model
+    # forest = tfdf.keras.RandomForestModel(max_depth=3, min_examples=9, check_dataset=False)
+    forest = tfdf.keras.RandomForestModel(tuner=tuner, check_dataset=False)
+
     forest.fit(X_train_pca, y_train, class_weight=class_weight)
 
     forest.compile(metrics=["accuracy"])
 
     print(forest.evaluate(X_train_pca, y_train, return_dict=True))
     print(forest.evaluate(X_test_pca, y_test, return_dict=True))
+
+
+    pred = model.predict(test_ds)
+    pred = tf.where(pred > 0, 1, 0)
+    pred = tf.squeeze(pred)
+    conf = conf_mat(pred, y_test, 2)
+    conf = perc(conf)
+
 
     def predict():
         X_test_pca = pca.transform(X_test)
@@ -154,4 +172,5 @@ with tf.device("/cpu:0"):
         forest.predict(test_ds)
 
     print("Timing prediction")
-    timeit(predict)
+    with tf.device("/cpu:0"):
+        timeit(predict)
