@@ -245,10 +245,12 @@ features_test = val_ds.map(lambda batch, label: (feature_extractor(batch), label
 print(features_test)
 print(features_train)
 
+tuner = tfdf.tuner.RandomSearch(num_trials=20)
+tuner.choice("max_depth", [5, 10, 15, 20, 25, 30])
+tuner.choice("min_examples", [5, 7, 9, 11, 13])
 
-forest = tfdf.keras.RandomForestModel(
-    verbose=1, max_depth=16, random_seed=1337, check_dataset=False
-)
+
+forest = tfdf.keras.RandomForestModel(tuner=tuner, check_dataset=False)
 forest.fit(x=features_train)
 
 forest.compile(metrics=["accuracy"])
