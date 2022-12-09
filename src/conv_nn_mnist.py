@@ -11,6 +11,7 @@ import keras_tuner as kt
 import seaborn as sns
 
 tf.keras.utils.set_random_seed(1336)
+tf.config.experimental.enable_op_determinism()
 """
 Convolutional neural network used for MNIST dataset. Performs hyperparameter tuning,
 trains the model, prints average time for making a prediction on the entire test set
@@ -18,7 +19,7 @@ creates a confusion matrix
 """
 
 batch_size = 128
-epochs = 1
+epochs = 10
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -112,7 +113,8 @@ model.load_weights(checkpoint_filepath)
 model.evaluate(x_test, y_test)
 
 print("Timing model:")
-timeit(model.predict, (x_test, y_test), batch_size=batch_size)
+with tf.device("/cpu:0"):
+    timeit(model.predict, (x_test, y_test), batch_size=batch_size)
 
 predictions = tf.math.argmax(model.predict(x_test), axis=1)
 conf = conf_mat(predictions, y_test, num_cls=10)

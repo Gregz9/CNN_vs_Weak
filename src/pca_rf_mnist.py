@@ -38,12 +38,14 @@ test_ds = tf.data.Dataset.from_tensor_slices((x_test_pca, y_test))
 train_ds = train_ds.batch(batch_size)
 test_ds = test_ds.batch(batch_size)
 
+tuner = tfdf.tuner.RandomSearch(num_trials=20)
+tuner.choice("max_depth", [5, 10, 15, 20, 25, 30])
+tuner.choice("min_examples", [5, 7, 9, 11, 13])
 
-forest = tfdf.keras.RandomForestModel(
-    verbose=1,
-    max_depth=32,
-    random_seed=1336,
-)
+
+# forest = tfdf.keras.RandomForestModel(max_depth=3, min_examples=9, check_dataset=False)
+forest = tfdf.keras.RandomForestModel(random_seed=1336, tuner=tuner, check_dataset=False)
+
 
 forest.fit(x=train_ds)
 
@@ -59,6 +61,6 @@ def predict():
     test_ds = test_ds.batch(batch_size)
     forest.predict(test_ds)
 
-
-print("Timing prediction")
-timeit(predict)
+with tf.device("/cpu:0"):
+    print("Timing prediction")
+    timeit(predict)

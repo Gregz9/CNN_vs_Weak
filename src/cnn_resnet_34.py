@@ -7,15 +7,17 @@ filedir = os.path.dirname(__file__)
 import numpy as np
 from CNN_models import DefaultConv2D, ResidualUnit
 """
-Convolutional neural network used for pneumonia dataset. Builds and fits data.
+Convolutional neural network using the ResNet-34 architecture presented in Gerons book on Machine Learning 
+with Tensorflow used for classification of images contained in the pneumonia dataset.
 """
 seed = 1337
 tf.keras.utils.set_random_seed(seed)
+# Forcing GPU to avoid running the calculations in arbitrary order
 tf.config.experimental.enable_op_determinism()
 
 TRAINDIR = filedir + "/../data/chest_xray/train"
 TESTDIR = filedir + "/../data/chest_xray/test"
-BATCHSIZE = 4
+BATCHSIZE = 4 
 IMG_HEIGHT = 227
 IMG_WIDTH = 227
 
@@ -79,6 +81,6 @@ model.fit(
     train_ds,
     batch_size=BATCHSIZE,
     validation_data=test_ds,
-    epochs=5,
+    epochs=10,
     class_weight=class_weight,
 )

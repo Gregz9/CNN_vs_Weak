@@ -10,17 +10,24 @@ import matplotlib.pyplot as plt
 from utils import *
 from sklearn.decomposition import PCA
 
+"""
+This script contains an implementation of a neural network constructed by using the 
+tensorflow API which is then fed the first n principal components extracted through the 
+use of the SciKit-learns PCA implementation from X-Ray images of Pneumonia obesrved in children.
+The sript outputs the training and test accurcies achieved, and average time spen on prediction (time 
+spent on training exluded). 
+"""
+
 filedir = os.path.dirname(__file__)
 
 tf.keras.utils.set_random_seed(1336)
-"""
-PCA neural network used for pneumonia dataset. Builds and fits data, takes time.
-"""
+# Module from tensorflow enabling override of GPU settings
+tf.config.experimental.enable_op_determinism()
 
-
+# ------------------------------------ Hyperparameter tuner  ------------------------------------  
 def model_builder(hp):
     hp_lambda = hp.Choice("lambda", values=[1e-5, 1e-4, 1e-3])
-    hp_learning_rate = hp.Choice("learning_rate", values=[1e-3, 1e-2, 1e-1])
+    hp_learning_rate = hp.Choice("learning_rate", values=[1e-5, 1e-4, 1e-3, 1e-2, 1e-1])
     hp_units = hp.Choice("units", values=[9, 15, 17, 24, 30])
 
     kernel = tf.keras.regularizers.L2(l2=hp_lambda)
@@ -51,18 +58,18 @@ def model_builder(hp):
     )
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adamax(learning_rate=hp_learning_rate),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=hp_learning_rate),
         loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
 
     return model
 
-
+# ------------------------------------- Loading data -------------------------------------------
 with tf.device("/cpu:0"):
     TRAINDIR = filedir + "/../data/chest_xray/train"
     TESTDIR = filedir + "/../data/chest_xray/test"
-    BATCHSIZE = 128
+    BATCHSIZE = 256#128
     IMG_HEIGHT = 227
     IMG_WIDTH = 227
 
@@ -84,6 +91,7 @@ with tf.device("/cpu:0"):
         color_mode="grayscale",
     )
 
+# ----------------------------------- Preprocessing ---------------------------------------------
     COUNT_NORMAL = 1071
     COUNT_PNEUMONIA = 3114
 
@@ -145,6 +153,7 @@ with tf.device("/cpu:0"):
     X_train_pca = pca.transform(X_train)
     X_test_pca = pca.transform(X_test)
 
+# ------------------------------- Hyperparamter tuning -------------------------------------------
 with tf.device("/gpu:0"):
     tuner = kt.Hyperband(
         model_builder,
@@ -166,6 +175,7 @@ with tf.device("/gpu:0"):
     print(learning_rate)
     print(units)
 
+# --------------------------------- Neural Network model ----------------------------------------
     kernel = tf.keras.regularizers.L2(l2=lam)
     bias = tf.keras.regularizers.L2(l2=lam)
     model = tf.keras.Sequential(
@@ -193,7 +203,7 @@ with tf.device("/gpu:0"):
     )
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adamax(learning_rate=learning_rate),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
         loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
@@ -224,28 +234,44 @@ with tf.device("/gpu:0"):
         x_test_pca = pca.transform(X_test)
         model.predict((x_test_pca, y_test))
 
+   
+    # with tf.device('/cpu:0'):
     print("Timing prediction")
     timeit(predict)
 
     X_train_pca_restored = pca.inverse_transform(X_test_pca)
-
-    plt.subplot(321)
+# ------------------------ Images reconstructed using only n principal components -----------------------------
+    plt.subplot(421)
     plt.title(f"Actual instance, 51k features. Class {y_train[0]}", size=18)
     plt.imshow(tf.reshape(X_train[0], (227, 227)))
-    plt.subplot(322)
+    plt.subplot(422)
     plt.title("PCA with 9 components", size=18)
     plt.imshow(tf.reshape(X_train_pca_restored[0], (227, 227)))
 
-    plt.subplot(323)
+    plt.subplot(423)
     plt.title(f"Class {y_train[5]}", size=18)
     plt.imshow(tf.reshape(X_train[5], (227, 227)))
-    plt.subplot(324)
+    plt.subplot(424)
     plt.imshow(tf.reshape(X_train_pca_restored[5], (227, 227)))
 
-    plt.subplot(325)
+    plt.subplot(425)
     plt.title(f"Class {y_train[8]}", size=18)
     plt.imshow(tf.reshape(X_train[8], (227, 227)))
-    plt.subplot(326)
+    plt.subplot(426)
     plt.imshow(tf.reshape(X_train_pca_restored[8], (227, 227)))
 
+    plt.subplot(427)
+    plt.title(f"Class {y_train[29]}", size=18)
+    plt.imshow(tf.reshape(X_train[29], (227, 227)))
+    plt.subplot(428)
+    plt.imshow(tf.reshape(X_train_pca_restored[29], (227, 227)))
+    
     plt.show()
+
+    pred = model.predict((X_test_pca, y_test))
+    pred = tf.where(pred > 0, 1, 0)
+    pred = tf.squeeze(pred)
+    conf = conf_mat(pred, y_test, 2)
+    conf = perc(conf)
+
+    plot_confusion(conf, title="Confusion matrix - PCA_NN - PNEUMONIA")

@@ -10,11 +10,18 @@ from sklearn.decomposition import PCA
 import keras_tuner as kt
 from sklearn.model_selection import KFold
 
+tf.config.experimental.enable_op_determinism()
 tf.keras.utils.set_random_seed(1336)
 """
-PCA neural network used for MNIST dataset. Builds and fits data.
+This file contains a combination of the PCA algorithm from SciKit-learn 
+library used for feature extraction and dimensionality reduction, and 
+an implementation of a neural network constructed by using the 
+tensorflow API which is then fed the first n principal components. 
+The neural network then performs classification on the basis of this 
+components, and outputs the final train and test accuracy achieved 
+on the test set.
 """
-
+# --------------------------------------- Loading data --------------------------------------------
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -30,7 +37,7 @@ pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
 pca.fit(x_train_flat)
 
 x_train_pca = pca.transform(x_train_flat)
-
+# ------------------------------------ Hyperparameter tuner  ------------------------------------ 
 
 def model_builder(hp):
     hp_units = hp.Int("units", min_value=32, max_value=512, step=32)
@@ -53,7 +60,7 @@ def model_builder(hp):
 
     return model
 
-
+# --------------------------------- Tuning hyperparameters --------------------------------------
 tuner = kt.Hyperband(
     model_builder,
     objective="val_accuracy",
@@ -62,17 +69,15 @@ tuner = kt.Hyperband(
     directory="pca_nn_mnist-parameters",
 )
 
-# tuner.search(x_train_pca, y_train, epochs=10, validation_split=0.2)
-# best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-# units = best_hps.get("units")
-# learning_rate = best_hps.get("learning_rate")
+tuner.search(x_train_pca, y_train, epochs=10, validation_split=0.2)
+best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+units = best_hps.get("units")
+learning_rate = best_hps.get("learning_rate")
 
-# print(units)
-# print(learning_rate)
+print(units)
+print(learning_rate)
 
-units = 100
-learning_rate = 0.001
-
+# ------------------------------- Extracting principal components -------------------------------
 start = time.time()
 pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
 pca.fit(x_train_flat)
@@ -93,7 +98,7 @@ model.compile(
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
-
+# ----------------------------------- Fitting the model -------------------------------------- 
 model.fit(
     x_train_pca,
     y_train,
@@ -125,5 +130,6 @@ def predict():
     model.predict((x_test_pca, y_test))
 
 
-print("Timing prediction")
-timeit(predict)
+with tf.device("/cpu:0"):
+    print("Timing prediction")
+    timeit(predict)
