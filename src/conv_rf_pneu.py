@@ -5,6 +5,7 @@ from tensorflow.keras import regularizers
 import tensorflow_datasets as tfds
 import keras_tuner as kt
 import tensorflow_decision_forests as tfdf
+from utils import *
 
 filedir = os.path.dirname(__file__)
 from functools import partial
@@ -241,7 +242,7 @@ feature_extractor = tf.keras.Model(
 )
 
 features_train = train_ds.map(lambda batch, label: (feature_extractor(batch), label))
-features_test = val_ds.map(lambda batch, label: (feature_extractor(batch), label))
+features_test = test_ds.map(lambda batch, label: (feature_extractor(batch), label))
 print(features_test)
 print(features_train)
 
