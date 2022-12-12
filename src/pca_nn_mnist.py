@@ -24,11 +24,8 @@ on the test set.
 # --------------------------------------- Loading data --------------------------------------------
 mnist = tf.keras.datasets.mnist
 
-(x_train, y_train_integer), (x_test, y_test_integer) = mnist.load_data()
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
 x_train, x_test = x_train / 255.0, x_test / 255.0
-
-y_train = tf.one_hot(y_train_integer, 10)
-y_test = tf.one_hot(y_test_integer, 10)
 
 n_components = 50
 
@@ -40,8 +37,7 @@ pca = PCA(n_components=n_components, svd_solver="randomized", random_state=1336)
 pca.fit(x_train_flat)
 
 x_train_pca = pca.transform(x_train_flat)
-# ------------------------------------ Hyperparameter tuner  ------------------------------------
-
+# ------------------------------------ Hyperparameter tuner  ------------------------------------ 
 
 def model_builder(hp):
     hp_units = hp.Int("units", min_value=32, max_value=512, step=32)
@@ -58,12 +54,11 @@ def model_builder(hp):
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=hp_learning_rate),
-        loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
 
     return model
-
 
 # --------------------------------- Tuning hyperparameters --------------------------------------
 tuner = kt.Hyperband(
@@ -100,14 +95,10 @@ model = tf.keras.Sequential(
 
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-    loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True),
-    metrics=[
-        "accuracy",
-        tf.keras.metrics.Precision(top_k=1),
-        tf.keras.metrics.Recall(thresholds=0),
-    ],
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"],
 )
-# ----------------------------------- Fitting the model --------------------------------------
+# ----------------------------------- Fitting the model -------------------------------------- 
 model.fit(
     x_train_pca,
     y_train,
@@ -125,13 +116,13 @@ results = model.evaluate(
 )
 
 predictions = tf.math.argmax(model.predict(x_test_pca), axis=1)
-conf = conf_mat(predictions, y_test_integer, num_cls=10)
+conf = conf_mat(predictions, y_test, num_cls=10)
 conf = perc(conf)
 plot_confusion(conf, title="Confusion matrix - PCA_NN - MNIST")
 
 print(f"{results=}")
 
-print(f"{results['accuracy']=}")
+print(f"{results["accuracy"]=}")
 
 
 def predict():
