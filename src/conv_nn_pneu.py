@@ -207,7 +207,7 @@ model.compile(
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
     metrics=[
         "accuracy",
-        tf.keras.metrics.Precision(top_k=1),
+        tf.keras.metrics.Precision(thresholds=0),
         tf.keras.metrics.Recall(thresholds=0),
     ],
 )
