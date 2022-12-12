@@ -1,6 +1,6 @@
 # CNN_vs_Hybrid_Models
 
-This repo contains code and report related to project 3 in subject FYS-STK3155/FYS_STK4155 - Applied Data Analysis and Machine Learning at University of Oslo. The main focus of this research is to compare CNNs to hybrid models, exploring whether simpler models can perform similarly to CNNs at a lower computational cost.
+This repo contains code and report related to project 3 in subject FYS-STK3155/FYS_STK4155 - Applied Data Analysis and Machine Learning at University of Oslo. The main focus of this research is to compare CNNs to hybrid models, exploring whether simpler models can perform similarly to CNNs at a lower computational cost. The paper is located at ```doc/paper.pdf```, while the source code is located at ```src```.
 
 ## Instructions on retrieving data
 
