@@ -205,7 +205,11 @@ model = tf.keras.Sequential(
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=2 * 10e-6),
     loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-    metrics=["accuracy"],
+    metrics=[
+        "accuracy",
+        tf.keras.metrics.Precision(thresholds=0),
+        tf.keras.metrics.Recall(thresholds=0),
+    ],
 )
 # Saves the weights from the best trainig epoch
 checkpoint_filepath = "/tmp/checkpoint"

@@ -206,7 +206,11 @@ with tf.device("/gpu:0"):
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
         loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-        metrics=["accuracy"],
+        metrics=[
+            "accuracy",
+            tf.keras.metrics.Precision(thresholds=0),
+            tf.keras.metrics.Recall(thresholds=0),
+        ],
     )
 
     checkpoint_filepath = "/tmp/checkpoint"
